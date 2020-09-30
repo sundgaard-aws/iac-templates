@@ -1,4 +1,5 @@
 using Amazon.CDK;
+using Amazon.CDK.AWS.S3;
 
 namespace Dotnet
 {
@@ -6,7 +7,9 @@ namespace Dotnet
     {
         internal DotnetStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            // The code that defines your stack goes here
+            var bucket = new Bucket(this, "iac-demo-static-web-bucket", new BucketProps {
+                Versioned = true
+            });
         }
     }
 }
