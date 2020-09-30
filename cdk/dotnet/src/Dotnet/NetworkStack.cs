@@ -12,7 +12,7 @@ namespace Dotnet
         {
             SubnetConfiguration[] conf = new SubnetConfiguration[1];
             conf[0] = new SubnetConfiguration{
-                CidrMask = 24
+                CidrMask = 24, Name = "private-subnet-a", SubnetType = SubnetType.PRIVATE
             };
 
             var vpc = new Vpc(this, "primary-vpc", new VpcProps {
