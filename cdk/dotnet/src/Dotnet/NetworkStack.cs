@@ -37,7 +37,7 @@ namespace Dotnet
             var privateSubnetB = new CfnSubnet(this, Prefix + "private-subnet-b", new CfnSubnetProps {
                 CidrBlock = "10.20.1.0/24", AvailabilityZone = this.AvailabilityZones[1], VpcId = vpc.Ref
             });
-            privateSubnetA.Tags.SetTag(Name, Prefix + "private-subnet-b");
+            privateSubnetB.Tags.SetTag(Name, Prefix + "private-subnet-b");
 
             /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
                 VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
