@@ -29,7 +29,7 @@ namespace Dotnet
 
             
             var privateSubnetA = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
-                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0]
+                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.LogicalId
             });
 
             privateSubnetA.Tags.SetTag("Name", "iac-demo-private-subnet-a");
