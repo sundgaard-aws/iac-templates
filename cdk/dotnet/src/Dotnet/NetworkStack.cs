@@ -10,9 +10,12 @@ namespace Dotnet
 
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            SubnetConfiguration[] conf = new SubnetConfiguration[1];
+            SubnetConfiguration[] conf = new SubnetConfiguration[2];
             conf[0] = new SubnetConfiguration{
                 CidrMask = 24, Name = "private-subnet-a", SubnetType = SubnetType.PRIVATE
+            };
+            conf[1] = new SubnetConfiguration{
+                CidrMask = 25, Name = "public-subnet-a", SubnetType = SubnetType.PUBLIC
             };
 
             var vpc = new Vpc(this, "primary-vpc", new VpcProps {
