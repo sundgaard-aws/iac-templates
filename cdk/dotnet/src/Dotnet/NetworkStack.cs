@@ -26,10 +26,10 @@ namespace Dotnet
             var vpc = new CfnVPC(this, "iac-demo-primary-vpc", new CfnVPCProps {
                 CidrBlock = "10.20.0.0/16"
             });
-
+            
             
             var privateSubnetA = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
-                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.LogicalId
+                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref
             });
 
             privateSubnetA.Tags.SetTag("Name", "iac-demo-private-subnet-a");
