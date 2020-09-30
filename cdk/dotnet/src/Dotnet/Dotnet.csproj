@@ -10,7 +10,6 @@
     <PackageReference Include="Amazon.JSII.Analyzers" Version="1.13.0"/>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0"/>
     <PackageReference Include="Amazon.CDK.AWS.EC2" Version="1.64.1"/>
-    <!--<PackageReference Include="System.Reflection.Metadata" Version="5.0.0-rc.1.20451.14"/>
-    <PackageReference Include="System.Collections.Immutable" Version="5.0.0-rc.1.20451.14"/>-->
+    <PackageReference Include="Amazon.CDK.AWS.Lambda" Version="1.64.1"/>
   </ItemGroup>
 </Project>
