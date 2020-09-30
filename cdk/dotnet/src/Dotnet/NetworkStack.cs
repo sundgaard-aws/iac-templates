@@ -10,10 +10,19 @@ namespace Dotnet
 
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            
+            SubnetConfiguration[] conf = new SubnetConfiguration[1];
+            conf[0] = new SubnetConfiguration{
+                CidrMask = 24
+            };
+
             var vpc = new Vpc(this, "primary-vpc", new VpcProps {
-                Cidr = "10.20.0.0/16"
+                Cidr = "10.20.0.0/16", SubnetConfiguration = conf
             });
+
+            /*foreach (var subnet in vpc.PrivateSubnets)
+            {
+                subnet.Ipv4CidrBlock = "aaa";
+            }*/
             
             /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
                 VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
@@ -26,7 +35,7 @@ namespace Dotnet
             });
             
             Tag.Add(vpc, Name, Prefix+"primary-vpc");*/
-            
+
             //var tags = new Tags();
             //new Tags().Add()
             // "iac-demo-primary-vpc"
