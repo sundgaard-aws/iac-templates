@@ -14,13 +14,15 @@ namespace Dotnet
             var vpc = new Vpc(this, "primary-vpc", new VpcProps {
                 Cidr = "10.20.0.0/16"
             });
-
+            
             var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
-                VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24"
+                VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
+                AvailabilityZone = this.AvailabilityZones[0]
             });            
 
             var privateSubnetB = new PrivateSubnet(this, "iac-demo-private-subnet-b", new PrivateSubnetProps {
-                VpcId = vpc.VpcId, CidrBlock = "10.20.2.0/24"
+                VpcId = vpc.VpcId, CidrBlock = "10.20.2.0/24",
+                AvailabilityZone = this.AvailabilityZones[1]
             });
             
             Tag.Add(vpc, Name, Prefix+"primary-vpc");
