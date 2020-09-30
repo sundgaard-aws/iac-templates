@@ -15,7 +15,7 @@ namespace Dotnet
                 Cidr = "10.20.0.0/16"
             });
             
-            var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
+            /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
                 VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
                 AvailabilityZone = this.AvailabilityZones[0]
             });            
@@ -25,7 +25,8 @@ namespace Dotnet
                 AvailabilityZone = this.AvailabilityZones[1]
             });
             
-            Tag.Add(vpc, Name, Prefix+"primary-vpc");
+            Tag.Add(vpc, Name, Prefix+"primary-vpc");*/
+            
             //var tags = new Tags();
             //new Tags().Add()
             // "iac-demo-primary-vpc"
