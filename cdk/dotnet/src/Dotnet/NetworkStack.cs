@@ -23,18 +23,18 @@ namespace Dotnet
                 Cidr = "10.20.0.0/16", SubnetConfiguration = conf, 
             });*/
 
-            var vpc = new CfnVPC(this, "iac-demo-primary-vpc", new CfnVPCProps {
+            var vpc = new CfnVPC(this, Prefix + "primary-vpc", new CfnVPCProps {
                 CidrBlock = "10.20.0.0/16"
             });
             vpc.Tags.SetTag(Name, Prefix + "primary-vpc");
             
             
-            var privateSubnetA = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
+            var privateSubnetA = new CfnSubnet(this, Prefix + "private-subnet-a", new CfnSubnetProps {
                 CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref
             });
             privateSubnetA.Tags.SetTag(Name, Prefix + "private-subnet-a");
 
-            var privateSubnetB = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
+            var privateSubnetB = new CfnSubnet(this, Prefix + "private-subnet-b", new CfnSubnetProps {
                 CidrBlock = "10.20.1.0/24", AvailabilityZone = this.AvailabilityZones[1], VpcId = vpc.Ref
             });
             privateSubnetA.Tags.SetTag(Name, Prefix + "private-subnet-b");
