@@ -26,13 +26,18 @@ namespace Dotnet
             var vpc = new CfnVPC(this, "iac-demo-primary-vpc", new CfnVPCProps {
                 CidrBlock = "10.20.0.0/16"
             });
+            vpc.Tags.SetTag(Name, Prefix + "primary-vpc");
             
             
             var privateSubnetA = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
                 CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref
             });
+            privateSubnetA.Tags.SetTag(Name, Prefix + "private-subnet-a");
 
-            privateSubnetA.Tags.SetTag("Name", "iac-demo-private-subnet-a");
+            var privateSubnetB = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
+                CidrBlock = "10.20.1.0/24", AvailabilityZone = this.AvailabilityZones[1], VpcId = vpc.Ref
+            });
+            privateSubnetA.Tags.SetTag(Name, Prefix + "private-subnet-b");
 
             /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
                 VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
