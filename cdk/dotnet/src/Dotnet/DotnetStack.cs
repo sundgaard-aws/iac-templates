@@ -8,7 +8,7 @@ namespace Dotnet
         internal DotnetStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             var bucket = new Bucket(this, "iac-demo-static-web-bucket", new BucketProps {
-                Versioned = true
+                Versioned = true, BucketName = "iac-demo-static-web-bucket", Encryption = BucketEncryption.S3_MANAGED
             });
         }
     }

@@ -9,5 +9,6 @@
     <PackageReference Include="Amazon.CDK.AWS.S3" Version="1.64.1"/>
     <PackageReference Include="Amazon.JSII.Analyzers" Version="1.13.0"/>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0"/>
+    <PackageReference Include="Amazon.CDK.AWS.EC2" Version="1.64.1"/>
   </ItemGroup>
 </Project>

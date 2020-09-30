@@ -10,7 +10,8 @@ namespace Dotnet
         public static void Main(string[] args)
         {
             var app = new App();
-            new DotnetStack(app, "DotnetStack");
+            new NetworkStack(app, "iac-demo-network-stack");
+            new DotnetStack(app, "iac-demo-storage-stack");            
             app.Synth();
         }
     }
