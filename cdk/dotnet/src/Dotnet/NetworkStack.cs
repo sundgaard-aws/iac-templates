@@ -10,7 +10,8 @@ namespace Dotnet
 
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            SubnetConfiguration[] conf = new SubnetConfiguration[2];
+            // Level 2 constructs
+            /*SubnetConfiguration[] conf = new SubnetConfiguration[2];
             conf[0] = new SubnetConfiguration{
                 CidrMask = 24, Name = "private-subnet-a", SubnetType = SubnetType.PRIVATE
             };
@@ -19,13 +20,24 @@ namespace Dotnet
             };
 
             var vpc = new Vpc(this, "primary-vpc", new VpcProps {
-                Cidr = "10.20.0.0/16", SubnetConfiguration = conf
+                Cidr = "10.20.0.0/16", SubnetConfiguration = conf, 
+            });*/
+
+            var vpc = new CfnVPC(this, "iac-demo-primary-vpc", new CfnVPCProps {
+                CidrBlock = "10.20.0.0/16"
             });
 
-            /*foreach (var subnet in vpc.PrivateSubnets)
-            {
-                subnet.Ipv4CidrBlock = "aaa";
-            }*/
+            
+            var privateSubnetA = new CfnSubnet(this, "iac-demo-private-subnet-a", new CfnSubnetProps {
+                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0]
+            });
+
+            privateSubnetA.Tags.SetTag("Name", "iac-demo-private-subnet-a");
+
+            /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
+                VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
+                AvailabilityZone = this.AvailabilityZones[0]
+            });   
             
             /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
                 VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
