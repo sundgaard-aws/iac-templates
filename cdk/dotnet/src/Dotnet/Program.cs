@@ -13,8 +13,9 @@ namespace Dotnet
         public static void Main(string[] args)
         {
             var app = new App();
-            new NetworkStack(app, "iac-demo-network-stack");
-            new WebAppStack(app, "iac-demo-storage-stack");            
+            var networkStack = new NetworkStack(app, "iac-demo-network-stack");
+            var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef);
+            var workflowStack = new WorkflowStack(app, "iac-demo-workflow-stack", networkStack.VpcRef);
             app.Synth();
         }
     }
