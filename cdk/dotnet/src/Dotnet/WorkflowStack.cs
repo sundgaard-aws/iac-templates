@@ -4,6 +4,7 @@ using Amazon.CDK.AWS.StepFunctions;
 using Amazon.CDK.AWS.SQS;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
+using Amazon.CDK.AWS.EC2;
 
 namespace Dotnet
 {
@@ -20,13 +21,16 @@ namespace Dotnet
             /*var stepFunctions = new Amazon.CDK.AWS.StepFunctions.CfnStateMachine(this, Program.PREFIX+"stf", new CfnStateMachineProps {
                 StateMachineType = StateMachineType.STANDARD.ToString(), StateMachineName = Program.PREFIX+"stf"
             });*/
+            var vpc = Vpc.FromLookup(this, vpcRef, new VpcLookupOptions{
+                VpcId = vpcRef
+            });
 
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn"
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc
             });
 
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn"
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
