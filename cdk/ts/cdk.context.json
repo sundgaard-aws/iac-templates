@@ -1,0 +1,32 @@
+{
+  "availability-zones:account=742577400659:region=eu-north-1": [
+    "eu-north-1a",
+    "eu-north-1b",
+    "eu-north-1c"
+  ],
+  "vpc-provider:account=742577400659:filter.tag:Name=iac-demo-primary-vpc:region=eu-north-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0ed609ff0c417cb5b",
+    "vpcCidrBlock": "10.20.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Private",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0ea2c853ce5e63f2c",
+            "cidr": "10.20.0.0/24",
+            "availabilityZone": "eu-north-1a",
+            "routeTableId": "rtb-0e08e43c54ec58997"
+          },
+          {
+            "subnetId": "subnet-0b66b81e82dd2d216",
+            "cidr": "10.20.1.0/24",
+            "availabilityZone": "eu-north-1b",
+            "routeTableId": "rtb-0e08e43c54ec58997"
+          }
+        ]
+      }
+    ]
+  }
+}
