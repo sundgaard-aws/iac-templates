@@ -11,20 +11,20 @@ namespace Dotnet
 {
     public class WorkflowStack : Stack
     {
-        internal WorkflowStack(Construct scope, string id, string vpcRef, IStackProps props = null) : base(scope, id, props)
+        internal WorkflowStack(Construct scope, string id, string vpcRef, Vpc vpc, IStackProps props = null) : base(scope, id, props)
         {
             createSQSQueue(vpcRef);
-            createStepFunctionStates(vpcRef);
+            createStepFunctionStates(vpcRef, vpc);
         }
 
-        private void createStepFunctionStates(string vpcRef)
+        private void createStepFunctionStates(string vpcRef, Vpc vpc)
         {
             /*var stepFunctions = new Amazon.CDK.AWS.StepFunctions.CfnStateMachine(this, Program.PREFIX+"stf", new CfnStateMachineProps {
                 StateMachineType = StateMachineType.STANDARD.ToString(), StateMachineName = Program.PREFIX+"stf"
             });*/
-            var vpc = Vpc.FromLookup(this, vpcRef, new VpcLookupOptions{
+            /*var vpc = Vpc.FromLookup(this, vpcRef, new VpcLookupOptions{
                 VpcId = vpcRef
-            });
+            });*/
 
             var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
                 BucketName = Program.PREFIX+"lambda-code-bucket"

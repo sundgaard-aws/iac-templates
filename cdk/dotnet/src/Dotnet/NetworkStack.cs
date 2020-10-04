@@ -7,6 +7,8 @@ namespace Dotnet
     public class NetworkStack : Stack
     {
         public string VpcRef { get; set; }
+        public Vpc L1Vpc { get; set; }
+        
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             //UsingLevel2Constructs();            
@@ -17,14 +19,14 @@ namespace Dotnet
             VpcRef = vpc.Ref;
             
             var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
-            var vpc2 = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
+            var L1Vpc = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
             {
                 VpcId = vpcId
             });
 
-            var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
+            /*var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
                 VpcId = VpcRef
-            });
+            });*/
 
             var privateSubnetA = new CfnSubnet(this, Program.PREFIX + "private-subnet-a", new CfnSubnetProps {
                 CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref

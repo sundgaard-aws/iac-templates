@@ -19,7 +19,7 @@ namespace Dotnet
             };
             var networkStack = new NetworkStack(app, "iac-demo-network-stack", stackProps);
             var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef);
-            var workflowStack = new WorkflowStack(app, "iac-demo-workflow-stack", networkStack.VpcRef);
+            var workflowStack = new WorkflowStack(app, "iac-demo-workflow-stack", networkStack.VpcRef, networkStack.L1Vpc);
             app.Synth();
         }
     }
