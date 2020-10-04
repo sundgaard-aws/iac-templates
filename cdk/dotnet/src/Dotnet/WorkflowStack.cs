@@ -27,13 +27,14 @@ namespace Dotnet
             });*/
 
             var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
-                BucketName = Program.PREFIX+"lambda-code-bucket"
-            });
+                BucketName = Program.PREFIX+"lambda-code-bucket",
+            });            
 
             var runtime = Runtime.DOTNET_CORE_3_1;
-            var submitFunctionCode = new S3Code(codeBucket, "submit-api-code");
+            var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
+            var submitFunctionCodeFromLocalZip = Code.FromAsset("submit-api.zip");
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCode, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
             });
 
             /*var test = new CfnFunction(this, "id", new CfnFunctionProps {
@@ -41,9 +42,10 @@ namespace Dotnet
             });*/
             
 
-            var statusFunctionCode = new S3Code(codeBucket, "status-api-code");
+            var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
+            var statusFunctionCodeFromLocalZip = Code.FromAsset("submit-api.zip");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCode, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
