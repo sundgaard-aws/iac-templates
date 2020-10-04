@@ -13,8 +13,9 @@ namespace Dotnet
         public static void Main(string[] args)
         {
             var app = new App();
+            var defaultAccount = System.Environment.GetEnvironmentVariable("CDK_DEFAULT_ACCOUNT");
             var stackProps = new StackProps {
-                Env = new Amazon.CDK.Environment { Region = "eu-central-1", Account = app.Account }
+                Env = new Amazon.CDK.Environment { Region = "eu-central-1", Account = defaultAccount }
             };
             var networkStack = new NetworkStack(app, "iac-demo-network-stack", stackProps);
             var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef);
