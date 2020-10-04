@@ -14,7 +14,7 @@ namespace Dotnet
         {
             var app = new App();
             var stackProps = new StackProps {
-                Env = new Amazon.CDK.Environment { Region = "eu-central-1" }
+                Env = new Amazon.CDK.Environment { Region = "eu-central-1", Account = app.Account }
             };
             var networkStack = new NetworkStack(app, "iac-demo-network-stack", stackProps);
             var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef);
