@@ -26,7 +26,7 @@ namespace Dotnet
             });
 
             var loadBalancer = new CfnLoadBalancer(this, Program.PREFIX+"web-alb", new CfnLoadBalancerProps {
-                Type = "Application"
+                Type = "application"
             });
         }
     }
