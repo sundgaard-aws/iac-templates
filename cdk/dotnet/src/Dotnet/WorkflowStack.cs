@@ -5,6 +5,7 @@ using Amazon.CDK.AWS.SQS;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Amazon.CDK.AWS.EC2;
+using Amazon.CDK.AWS.S3;
 
 namespace Dotnet
 {
@@ -25,12 +26,18 @@ namespace Dotnet
                 VpcId = vpcRef
             });
 
-            var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc
+            var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
+                BucketName = Program.PREFIX+"lambda-code-bucket"
             });
 
+            var submitFunctionCode = new S3Code(codeBucket, "submit-api-code");
+            var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCode
+            });
+
+            var statusFunctionCode = new S3Code(codeBucket, "status-api-code");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCode
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
