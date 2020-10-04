@@ -8,7 +8,7 @@ namespace Dotnet
     {
         public string VpcRef { get; set; }
         public Vpc L1Vpc { get; set; }
-        
+
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             //UsingLevel2Constructs();            
@@ -18,10 +18,10 @@ namespace Dotnet
             vpc.Tags.SetTag(Program.NAME, Program.PREFIX + "primary-vpc");
             VpcRef = vpc.Ref;
             
-            var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
+            //var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
             var L1Vpc = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
             {
-                VpcId = vpcId
+                VpcName = Program.PREFIX + "primary-vpc"
             });
 
             /*var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
