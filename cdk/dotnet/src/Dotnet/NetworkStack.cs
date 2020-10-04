@@ -13,8 +13,13 @@ namespace Dotnet
             var vpc = new CfnVPC(this, Program.PREFIX + "primary-vpc", new CfnVPCProps {
                 CidrBlock = "10.20.0.0/16"
             });
+            
             vpc.Tags.SetTag(Program.NAME, Program.PREFIX + "primary-vpc");
             VpcRef = vpc.Ref;
+
+            var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
+                VpcId = VpcRef
+            });
 
             var privateSubnetA = new CfnSubnet(this, Program.PREFIX + "private-subnet-a", new CfnSubnetProps {
                 CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref

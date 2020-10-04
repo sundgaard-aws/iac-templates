@@ -36,6 +36,11 @@ namespace Dotnet
                 FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCode, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
             });
 
+            /*var test = new CfnFunction(this, "id", new CfnFunctionProps {
+                FunctionName = Program.PREFIX + "submit-api-lfn", Code = submitFunctionCode, Runtime = runtime.ToString(), Handler = "IAC.Demo.FunctionHandler"
+            });*/
+            
+
             var statusFunctionCode = new S3Code(codeBucket, "status-api-code");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
                 FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCode, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
