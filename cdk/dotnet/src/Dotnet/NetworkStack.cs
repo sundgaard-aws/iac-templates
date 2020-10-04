@@ -17,6 +17,12 @@ namespace Dotnet
             vpc.Tags.SetTag(Program.NAME, Program.PREFIX + "primary-vpc");
             VpcRef = vpc.Ref;
 
+            var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
+            var vpc2 = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
+            {
+                VpcId = vpcId
+            });
+
             var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
                 VpcId = VpcRef
             });
