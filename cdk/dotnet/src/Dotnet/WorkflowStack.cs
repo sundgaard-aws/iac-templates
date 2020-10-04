@@ -27,7 +27,7 @@ namespace Dotnet
             });*/
 
             var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
-                BucketName = Program.PREFIX+"lambda-code-bucket",
+                BucketName = Program.PREFIX+"lambda-code-bucket"
             });            
 
             var runtime = Runtime.DOTNET_CORE_3_1;
