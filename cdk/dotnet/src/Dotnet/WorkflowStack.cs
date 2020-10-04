@@ -87,7 +87,7 @@ namespace Dotnet
         private void createSQSQueue(string vpcRef)
         {
             var queue = new Amazon.CDK.AWS.SQS.CfnQueue(this, Program.PREFIX+"sqs", new CfnQueueProps {
-                QueueName = Program.PREFIX+"sqs", VisibilityTimeout = 4000, MessageRetentionPeriod = 3600000
+                QueueName = Program.PREFIX+"sqs", VisibilityTimeout = 4, MessageRetentionPeriod = 360000
             });
             queue.Tags.SetTag("Name", Program.PREFIX+"sqs");
         }
