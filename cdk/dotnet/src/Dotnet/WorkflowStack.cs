@@ -32,12 +32,12 @@ namespace Dotnet
 
             var submitFunctionCode = new S3Code(codeBucket, "submit-api-code");
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCode
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCode, Handler = "IAC.Demo.FunctionHandler"
             });
 
             var statusFunctionCode = new S3Code(codeBucket, "status-api-code");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCode
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCode, Handler = "IAC.Demo.FunctionHandler"
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
