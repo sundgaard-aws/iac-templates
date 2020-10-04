@@ -12,9 +12,9 @@ namespace Dotnet
                 Versioned = true, BucketName = "iac-demo-static-web-bucket", Encryption = BucketEncryption.S3_MANAGED
             });
 
-            new Function(this, Program.PREFIX + "lam", new FunctionProps {
+            /*new Function(this, Program.PREFIX + "lam", new FunctionProps {
                 FunctionName = Program.PREFIX + "static-web-bucket"
-            });
+            });*/
         }
     }
 }
