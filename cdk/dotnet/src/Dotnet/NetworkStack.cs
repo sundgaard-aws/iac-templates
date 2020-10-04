@@ -13,10 +13,9 @@ namespace Dotnet
             var vpc = new CfnVPC(this, Program.PREFIX + "primary-vpc", new CfnVPCProps {
                 CidrBlock = "10.20.0.0/16"
             });
-            
             vpc.Tags.SetTag(Program.NAME, Program.PREFIX + "primary-vpc");
             VpcRef = vpc.Ref;
-
+            
             var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
             var vpc2 = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
             {
