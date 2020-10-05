@@ -1,4 +1,7 @@
-
+.aws-sam
+bin
+lib
+*.dll
 # Created by https://www.gitignore.io/api/macos,linux,windows,sublimetext,dotsettings,visualstudio,visualstudiocode
 
 ### DotSettings ###
