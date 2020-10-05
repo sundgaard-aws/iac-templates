@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'iac-demo-sam
+
+  Sample SAM Template for iac-demo-sam
+
+  '
+Resources:
+  StockTradingStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: ../../statemachine/stockTrader.asl.json
+      DefinitionSubstitutions:
+        StockCheckerFunctionArn:
+          Fn::GetAtt:
+          - StockCheckerFunction
+          - Arn
+        StockSellerFunctionArn:
+          Fn::GetAtt:
+          - StockSellerFunction
+          - Arn
+        StockBuyerFunctionArn:
+          Fn::GetAtt:
+          - StockBuyerFunction
+          - Arn
+        TradeAmountValidatorArn:
+          Fn::GetAtt:
+          - TradeAmountValidatorFunction
+          - Arn
+        DDBPutItem:
+          Fn::Sub: arn:${AWS::Partition}:states:::dynamodb:putItem
+        DDBTable:
+          Ref: TransactionTable
+      Events:
+        HourlyTradingSchedule:
+          Type: Schedule
+          Properties:
+            Description: Schedule to run the stock trading state machine every hour
+            Enabled: false
+            Schedule: rate(1 hour)
+      Policies:
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: StockCheckerFunction
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: StockSellerFunction
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: StockBuyerFunction
+      - LambdaInvokePolicy:
+          FunctionName:
+            Ref: TradeAmountValidatorFunction
+      - DynamoDBWritePolicy:
+          TableName:
+            Ref: TransactionTable
+  StockCheckerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: StockCheckerFunction
+      Handler: StockChecker::StockChecker.Function::FunctionHandler
+      Runtime: dotnetcore3.1
+  StockSellerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: StockSellerFunction
+      Handler: StockSeller::StockSeller.Function::FunctionHandler
+      Runtime: dotnetcore3.1
+  StockBuyerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: StockBuyerFunction
+      Handler: StockBuyer::StockBuyer.Function::FunctionHandler
+      Runtime: dotnetcore3.1
+  TradeAmountValidatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TradeAmountValidatorFunction
+      Handler: TradeAmountValidator::TradeAmountValidator.Function::FunctionHandler
+      Runtime: dotnetcore3.1
+  TransactionTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: Id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+Outputs:
+  StockTradingStateMachineArn:
+    Description: Stock Trading State machine ARN
+    Value:
+      Ref: StockTradingStateMachine
+  StockTradingStateMachineRoleArn:
+    Description: IAM Role created for Stock Trading State machine based on the specified
+      SAM Policy Templates
+    Value:
+      Fn::GetAtt:
+      - StockTradingStateMachineRole
+      - Arn
