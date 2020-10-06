@@ -29,7 +29,7 @@ export class WorkflowStack extends Core.Stack {
         });*/
 
         var codeBucket = new S3.Bucket(this, PREFIX+"lambda-code-bucket", {
-            bucketName: PREFIX+"lambda-code-bucket"
+            bucketName: PREFIX+"lambda-code-bucket", removalPolicy: Core.RemovalPolicy.DESTROY
         });            
 
         var runtime = Lambda.Runtime.NODEJS_12_X;
