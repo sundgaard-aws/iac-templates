@@ -20,6 +20,7 @@ export class WorkflowStack extends Core.Stack {
 
     private createStepFunctionStates(vpcRef: string, vpc: IVpc)
     {
+        // removalPolicy: cdk.RemovalPolicy.DESTROY,
         /*var stepFunctions = new Amazon.CDK.AWS.StepFunctions.CfnStateMachine(this, Program.PREFIX+"stf", new CfnStateMachineProps {
             StateMachineType = StateMachineType.STANDARD.ToString(), StateMachineName = Program.PREFIX+"stf"
         });*/
@@ -31,11 +32,11 @@ export class WorkflowStack extends Core.Stack {
             bucketName: PREFIX+"lambda-code-bucket"
         });            
 
-        var runtime = Lambda.Runtime.DOTNET_CORE_3_1;
+        var runtime = Lambda.Runtime.NODEJS_12_X;
         //var submitFunctionCodeFromS3 = new Lambda.S3Code(codeBucket, "submit-api-code.zip");
         var submitFunctionCodeFromLocalZip = Lambda.Code.fromAsset("assets/submit-api");
-        var submitLambda = new Lambda.Function(this, "SubmitLambda", { 
-            functionName: PREFIX + "submit-api-lfn", vpc: vpc, code: submitFunctionCodeFromLocalZip, handler: "IAC.Demo.FunctionHandler", runtime: runtime
+        var submitLambda = new Lambda.Function(this, PREFIX+"submit-api-lam", { 
+            functionName: PREFIX + "submit-api-lfn", vpc: vpc, code: submitFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
         });
 
         /*var test = new CfnFunction(this, "id", new CfnFunctionProps {
@@ -45,8 +46,8 @@ export class WorkflowStack extends Core.Stack {
 
         //var statusFunctionCodeFromS3 = new Lambda.S3Code(codeBucket, "status-api-code.zip");
         var statusFunctionCodeFromLocalZip = Lambda.Code.fromAsset("assets/status-api");
-        var getStatusLambda = new Lambda.Function(this, "CheckLambda", { 
-            functionName: PREFIX + "check-api-lfn", vpc: vpc, code: statusFunctionCodeFromLocalZip, handler: "IAC.Demo.FunctionHandler", runtime: runtime
+        var getStatusLambda = new Lambda.Function(this, PREFIX+"status-api-lam", { 
+            functionName: PREFIX + "check-api-lfn", vpc: vpc, code: statusFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
         });
 
         var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Job", {
