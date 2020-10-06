@@ -93,6 +93,6 @@ export class WorkflowStack extends Core.Stack {
         var queue = new SQS.CfnQueue(this, PREFIX+"sqs", {
             queueName: PREFIX+"sqs", visibilityTimeout: 4, messageRetentionPeriod: 360000
         });
-        queue.tags.setTag("Name", PREFIX+"sqs");
+        queue.tags.setTag(NAME, PREFIX+"sqs");
     }
 }
