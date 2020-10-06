@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
-import { DummyStack } from '../lib/dummy-stack';
-import { NetworkStack } from '../lib/network-stack';
-import { WorkflowStack } from '../lib/workflow-stack';
+import { DummyStack } from './dummy-stack';
+import { NetworkStack } from './network-stack';
+import { WorkflowStack } from './workflow-stack';
 import { env } from 'process';
 
 const app = new cdk.App();
