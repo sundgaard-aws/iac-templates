@@ -93,15 +93,19 @@ export class NetworkStack extends cdk.Stack {
         var publicSubnet_A_NAT_GW_EIP = new CfnEIP(this, PREFIX+"nat-gw-a-eip", {
             domain: "vpc"
         });
+        publicSubnet_A_NAT_GW_EIP.tags.setTag(NAME, PREFIX+"nat-gw-a-eip");
         var publicSubnet_B_NAT_GW_EIP = new CfnEIP(this, PREFIX+"nat-gw-b-eip", {
             domain: "vpc"
         });
+        publicSubnet_B_NAT_GW_EIP.tags.setTag(NAME, PREFIX+"nat-gw-b-eip");
         var publicSubnetANATGW = new CfnNatGateway(this, PREFIX+"public-subnet-a-nat-gw", {
             subnetId: this.publicSubnetA.ref, allocationId: publicSubnet_A_NAT_GW_EIP.attrAllocationId
         });
+        publicSubnetANATGW.tags.setTag(NAME, PREFIX + "public-subnet-a-nat-gw");
         var publicSubnetBNATGW = new CfnNatGateway(this, PREFIX+"public-subnet-b-nat-gw", {
             subnetId: this.publicSubnetB.ref, allocationId: publicSubnet_B_NAT_GW_EIP.attrAllocationId
         });
+        publicSubnetBNATGW.tags.setTag(NAME, PREFIX + "public-subnet-b-nat-gw");
 
         /*new CfnEIPAssociation(this, PREFIX+"nat-gw-a-eip-assoc", {
             eip: publicSubnet_A_NAT_GW_EIP.ref, 
@@ -128,12 +132,12 @@ export class NetworkStack extends cdk.Stack {
             routeTableId: privateRouteTableB.ref, subnetId: this.privateSubnetB.ref
         });
         
-        /*var privateSubnetANATRoute = new CfnRoute(this, PREFIX+"private-subnet-a-nat-route", {
-            routeTableId: privateRouteTableA.ref, destinationCidrBlock: "0.0.0.0/0", gatewayId: publicSubnetANATGW.ref
+        var privateSubnetANATRoute = new CfnRoute(this, PREFIX+"private-subnet-a-nat-route", {
+            routeTableId: privateRouteTableA.ref, destinationCidrBlock: "0.0.0.0/0", natGatewayId: publicSubnetANATGW.ref
         });
         var privateSubnetBNATRoute = new CfnRoute(this, PREFIX+"private-subnet-b-nat-route", {
-            routeTableId: privateRouteTableB.ref, destinationCidrBlock: "0.0.0.0/0", gatewayId: publicSubnetBNATGW.ref
-        });*/
+            routeTableId: privateRouteTableB.ref, destinationCidrBlock: "0.0.0.0/0", natGatewayId: publicSubnetBNATGW.ref
+        });
 
         //CfnSubnetNetworkAclAssociation
     }        
