@@ -9,31 +9,42 @@ import * as ASC from '@aws-cdk/aws-autoscaling';
 import * as ELB from '@aws-cdk/aws-elasticloadbalancingv2';
 import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
 import { MetaData } from './meta-data';
+import { CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
 
 export class ClassicWebStack extends Core.Stack {
+    private targetGroup: ELB.CfnTargetGroup;
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
         console.log("region="+props?.env?.region);
         
+        this.createLoadBalancer(metaData);
         this.createAutoScalingGroup(metaData);
         //this.createAutoScalingGroupL2(vpcRef, vpc);
     }
 
+    private createLoadBalancer(metaData: MetaData) {
+        this.targetGroup = new CfnTargetGroup(this, PREFIX+"web-tg", {
+            port: 80, protocol: "HTTP", vpcId: metaData.VPC.vpcId, name: PREFIX+"web-tg"
+        });
+        this.targetGroup.tags.setTag(NAME, PREFIX+"web-tg");
+
+        var alb = new CfnLoadBalancer(this, PREFIX+"web-alb", {
+            name: PREFIX+"web-alb", type: "application",
+            ipAddressType: "ipv4",
+            subnets: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
+            scheme: "internal" // internal | internet-facing            
+            //subnetMappings: 
+        });
+        alb.tags.setTag(NAME, PREFIX+"web-alb");
+    }
+
     private createAutoScalingGroup(metaData: MetaData)
     {
-        //EC2.MachineImage.latestAmazonLinux().getImage(this);
-        const amznLinux = EC2.MachineImage.latestAmazonLinux({
-            generation: EC2.AmazonLinuxGeneration.AMAZON_LINUX_2
-            /*edition: EC2.AmazonLinuxEdition.MINIMAL,
-            virtualization: EC2.AmazonLinuxVirt.HVM,
-            storage: EC2.AmazonLinuxStorage.GENERAL_PURPOSE,
-            cpuType: EC2.AmazonLinuxCpuType.X86_64*/
-        });
-
-        console.log("ami-id="+ amznLinux.getImage(this).imageId);
+        var ami = this.getAMI();
+        console.log("ami-id="+ ami.getImage(this).imageId);
         
         var launchTemplate = new EC2.CfnLaunchTemplate(this, PREFIX+"ltm", {            
             launchTemplateName: PREFIX+"ltm", launchTemplateData: { 
@@ -49,9 +60,23 @@ export class ClassicWebStack extends Core.Stack {
             desiredCapacity: "2",
             healthCheckType: "ELB", healthCheckGracePeriod: 5, cooldown: "30", 
             availabilityZones: [metaData.VPC.privateSubnets[0].availabilityZone, metaData.VPC.privateSubnets[1].availabilityZone],
-            vpcZoneIdentifier: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId]
+            vpcZoneIdentifier: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
+            targetGroupArns: [this.targetGroup.ref]
+            // loadBalancerNames: only for classic LBs            
         });        
         asg.tags.setTag(NAME, PREFIX+"asg");
+    }
+
+    private getAMI() {
+        //EC2.MachineImage.latestAmazonLinux().getImage(this);
+        const amznLinux = EC2.MachineImage.latestAmazonLinux({
+            generation: EC2.AmazonLinuxGeneration.AMAZON_LINUX_2
+            /*edition: EC2.AmazonLinuxEdition.MINIMAL,
+            virtualization: EC2.AmazonLinuxVirt.HVM,
+            storage: EC2.AmazonLinuxStorage.GENERAL_PURPOSE,
+            cpuType: EC2.AmazonLinuxCpuType.X86_64*/
+        });
+        return amznLinux;
     }
 
     private createAutoScalingGroupL2(vpcRef: string, vpc: EC2.IVpc) {
