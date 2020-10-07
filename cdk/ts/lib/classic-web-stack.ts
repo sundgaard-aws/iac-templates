@@ -9,7 +9,7 @@ import * as ASC from '@aws-cdk/aws-autoscaling';
 import * as ELB from '@aws-cdk/aws-elasticloadbalancingv2';
 import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
 import { MetaData } from './meta-data';
-import { CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
+import { CfnListener, CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
@@ -27,18 +27,37 @@ export class ClassicWebStack extends Core.Stack {
 
     private createLoadBalancer(metaData: MetaData) {
         this.targetGroup = new CfnTargetGroup(this, PREFIX+"web-tg", {
-            port: 80, protocol: "HTTP", vpcId: metaData.VPC.vpcId, name: PREFIX+"web-tg"
+            port: 80, protocol: "HTTP", vpcId: metaData.VPC.vpcId, name: PREFIX+"web-tg",
+            healthCheckEnabled: true, healthCheckPath: "/health.html", healthCheckPort: "80"
         });
         this.targetGroup.tags.setTag(NAME, PREFIX+"web-tg");
 
         var alb = new CfnLoadBalancer(this, PREFIX+"web-alb", {
-            name: PREFIX+"web-alb", type: "application",
-            ipAddressType: "ipv4",
-            subnets: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
-            scheme: "internal" // internal | internet-facing            
+            //name: PREFIX+"web-alb", type: "application",
+            ipAddressType: "ipv4",            
+            //subnets: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
+            subnets: [metaData.PublicSubnets[0].ref, metaData.PublicSubnets[1].ref],
+            scheme: "internet-facing" // internal | internet-facing            
             //subnetMappings: 
         });
         alb.tags.setTag(NAME, PREFIX+"web-alb");
+
+        var listener = new CfnListener(this, PREFIX+"http-listener", {
+            port: 80, protocol: "HTTP", loadBalancerArn: alb.ref,             
+            defaultActions: [
+                {
+                    type: "redirect",
+                    redirectConfig: {
+                      protocol: "HTTPS",
+                      host: "#{host}",
+                      path: "/#{path}",
+                      query: "#{query}",
+                      port: "443",
+                      statusCode: "HTTP_301"
+                    }
+                }
+            ]
+        });
     }
 
     private createAutoScalingGroup(metaData: MetaData)
@@ -51,20 +70,32 @@ export class ClassicWebStack extends Core.Stack {
                 //imageId: amznLinux.getImage(this).imageId
                 instanceType: "t3.micro",
                 imageId: "ami-0653812935d0743fe", // Varies per region
-                ebsOptimized: false
+                ebsOptimized: false,
+                userData: this.buildHttpServer()
             }
         });        
         
         var asg = new ASC.CfnAutoScalingGroup(this, PREFIX+"asg", {
             maxSize: "4", minSize: "2", autoScalingGroupName: PREFIX+"asg", launchTemplate: { launchTemplateId: launchTemplate.ref, version: "1" },             
             desiredCapacity: "2",
-            healthCheckType: "ELB", healthCheckGracePeriod: 5, cooldown: "30", 
+            healthCheckType: "ELB", healthCheckGracePeriod: 5, cooldown: "30",
             availabilityZones: [metaData.VPC.privateSubnets[0].availabilityZone, metaData.VPC.privateSubnets[1].availabilityZone],
             vpcZoneIdentifier: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
             targetGroupArns: [this.targetGroup.ref]
             // loadBalancerNames: only for classic LBs            
         });        
         asg.tags.setTag(NAME, PREFIX+"asg");
+    }
+
+    private buildHttpServer(): string | undefined {
+        var commandText = 
+        "yum update -y" +
+        "yum install httpd" +        
+        "echo \"<html><body><h1>Welcome to the IaC Demo Web Site</h1></body></html>\" > /var/www/html/index.html" +
+        "echo \"OK\" > /var/www/html/health.html" +
+        "systemctl start httpd" +
+        "systemctl enable httpd.service";
+        return Core.Fn.base64(commandText);
     }
 
     private getAMI() {

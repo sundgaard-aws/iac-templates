@@ -16,6 +16,7 @@ const NAME = "Name";
 export class MetaData {
     public VPC: EC2.IVpc;
     public VPCRef: string;
+    PublicSubnets: EC2.CfnSubnet[];
     constructor() {
     }
     
