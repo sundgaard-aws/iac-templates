@@ -8,20 +8,21 @@ import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
 import * as ASC from '@aws-cdk/aws-autoscaling';
 import * as ELB from '@aws-cdk/aws-elasticloadbalancingv2';
 import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
+import { MetaData } from './meta-data';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
 
 export class ClassicWebStack extends Core.Stack {
-    constructor(scope: Core.Construct, id: string, vpcRef: string, vpc: EC2.IVpc, props?: Core.StackProps) {
+    constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
         console.log("region="+props?.env?.region);
         
-        this.createAutoScalingGroup(vpcRef, vpc);
+        this.createAutoScalingGroup(metaData);
         //this.createAutoScalingGroupL2(vpcRef, vpc);
     }
 
-    private createAutoScalingGroup(vpcRef: string, vpc: IVpc)
+    private createAutoScalingGroup(metaData: MetaData)
     {
         //EC2.MachineImage.latestAmazonLinux().getImage(this);
         const amznLinux = EC2.MachineImage.latestAmazonLinux({
@@ -44,8 +45,11 @@ export class ClassicWebStack extends Core.Stack {
         });        
         
         var asg = new ASC.CfnAutoScalingGroup(this, PREFIX+"asg", {
-            maxSize: "4", minSize: "2", autoScalingGroupName: PREFIX+"asg", launchTemplate: { launchTemplateId: launchTemplate.ref, version: "1" }, availabilityZones: this.availabilityZones, desiredCapacity: "2",
-            healthCheckType: "ELB", healthCheckGracePeriod: 500, cooldown: "100"
+            maxSize: "4", minSize: "2", autoScalingGroupName: PREFIX+"asg", launchTemplate: { launchTemplateId: launchTemplate.ref, version: "1" },             
+            desiredCapacity: "2",
+            healthCheckType: "ELB", healthCheckGracePeriod: 5, cooldown: "30", 
+            availabilityZones: [metaData.VPC.privateSubnets[0].availabilityZone, metaData.VPC.privateSubnets[1].availabilityZone],
+            vpcZoneIdentifier: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId]
         });        
         asg.tags.setTag(NAME, PREFIX+"asg");
     }

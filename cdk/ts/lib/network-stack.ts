@@ -8,6 +8,9 @@ export class NetworkStack extends cdk.Stack {
     
     public VPCRef:string;
     public L1VPC:EC2.IVpc;
+    public privateSubnetA:EC2.CfnSubnet;
+    public privateSubnetB:EC2.CfnSubnet;
+
     constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
@@ -28,14 +31,14 @@ export class NetworkStack extends cdk.Stack {
             VpcId = VpcRef
         });*/
 
-        var privateSubnetA = new EC2.CfnSubnet(this, PREFIX + "private-subnet-a",  {
+        this.privateSubnetA = new EC2.CfnSubnet(this, PREFIX + "private-subnet-a",  {
             cidrBlock: "10.20.0.0/24", availabilityZone: this.availabilityZones[0], vpcId: this.VPCRef
         });
-        privateSubnetA.tags.setTag(NAME, PREFIX + "private-subnet-a");
+        this.privateSubnetA.tags.setTag(NAME, PREFIX + "private-subnet-a");
 
-        var privateSubnetB = new EC2.CfnSubnet(this, PREFIX + "private-subnet-b", {
+        this.privateSubnetB = new EC2.CfnSubnet(this, PREFIX + "private-subnet-b", {
             cidrBlock: "10.20.1.0/24", availabilityZone: this.availabilityZones[1], vpcId: this.VPCRef
         });
-        privateSubnetB.tags.setTag(NAME, PREFIX + "private-subnet-b");
+        this.privateSubnetB.tags.setTag(NAME, PREFIX + "private-subnet-b");
     }        
 }

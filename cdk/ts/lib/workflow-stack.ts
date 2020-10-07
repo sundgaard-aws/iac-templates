@@ -6,19 +6,20 @@ import Lambda = require('@aws-cdk/aws-lambda');
 import StepFunctions = require('@aws-cdk/aws-stepfunctions');
 import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
 import { IVpc } from '@aws-cdk/aws-ec2';
+import { MetaData } from './meta-data';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
 
 export class WorkflowStack extends Core.Stack {
-    constructor(scope: Core.Construct, id: string, vpcRef: string, vpc: EC2.IVpc, props?: Core.StackProps) {
+    constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
 
-        this.createSQSQueue(vpcRef);
-        this.createStepFunctionStates(vpcRef, vpc);
+        this.createSQSQueue(metaData);
+        this.createStepFunctionStates(metaData);
     }
 
-    private createStepFunctionStates(vpcRef: string, vpc: IVpc)
+    private createStepFunctionStates(metaData: MetaData)
     {
         // removalPolicy: cdk.RemovalPolicy.DESTROY,
         /*var stepFunctions = new Amazon.CDK.AWS.StepFunctions.CfnStateMachine(this, Program.PREFIX+"stf", new CfnStateMachineProps {
@@ -36,7 +37,7 @@ export class WorkflowStack extends Core.Stack {
         //var submitFunctionCodeFromS3 = new Lambda.S3Code(codeBucket, "submit-api-code.zip");
         var submitFunctionCodeFromLocalZip = Lambda.Code.fromAsset("assets/submit-api");
         var submitLambda = new Lambda.Function(this, PREFIX+"submit-api-lam", { 
-            functionName: PREFIX + "submit-api-lfn", vpc: vpc, code: submitFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
+            functionName: PREFIX + "submit-api-lfn", vpc: metaData.VPC, code: submitFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
         });
 
         /*var test = new CfnFunction(this, "id", new CfnFunctionProps {
@@ -47,7 +48,7 @@ export class WorkflowStack extends Core.Stack {
         //var statusFunctionCodeFromS3 = new Lambda.S3Code(codeBucket, "status-api-code.zip");
         var statusFunctionCodeFromLocalZip = Lambda.Code.fromAsset("assets/status-api");
         var getStatusLambda = new Lambda.Function(this, PREFIX+"status-api-lam", { 
-            functionName: PREFIX + "check-api-lfn", vpc: vpc, code: statusFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
+            functionName: PREFIX + "check-api-lfn", vpc: metaData.VPC, code: statusFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
         });
 
         var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Job", {
@@ -89,7 +90,7 @@ export class WorkflowStack extends Core.Stack {
         });
     }
 
-    private createSQSQueue(vpcRef: string)
+    private createSQSQueue(metaData: MetaData)
     {
         var queue = new SQS.CfnQueue(this, PREFIX+"sqs", {
             queueName: PREFIX+"sqs", visibilityTimeout: 4, messageRetentionPeriod: 360000
