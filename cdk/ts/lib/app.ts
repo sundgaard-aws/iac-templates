@@ -12,9 +12,9 @@ import EC2 = require('@aws-cdk/aws-ec2');
 const app = new cdk.App();
 const PREFIX = "iac-demo-";
 var props = {env: {account: process.env["CDK_DEFAULT_ACCOUNT"], region: process.env["CDK_DEFAULT_REGION"] } };
-var networkStack = new NetworkStack(app, 'DemoNetworkStack', props);
-
 var metaData = new MetaData();
+var networkStack = new NetworkStack(app, 'DemoNetworkStack', metaData, props);
+
 metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
     vpcName: PREFIX + "primary-vpc", isDefault: false, tags: {"Name": PREFIX+"primary-vpc"}
 });

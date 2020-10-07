@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import EC2 = require('@aws-cdk/aws-ec2');
 import { CfnEIP, CfnEIPAssociation, CfnInternetGateway, CfnNatGateway, CfnNetworkInterface, CfnRoute, CfnRouteTable, CfnSubnetNetworkAclAssociation, CfnSubnetRouteTableAssociation, CfnVPCGatewayAttachment } from '@aws-cdk/aws-ec2';
+import { MetaData } from './meta-data';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
@@ -15,7 +16,7 @@ export class NetworkStack extends cdk.Stack {
     public publicSubnetB:EC2.CfnSubnet;
     public publicSubnets:Array<EC2.CfnSubnet>
 
-    constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: cdk.Construct, id: string, metaData: MetaData, props?: cdk.StackProps) {
         super(scope, id, props);
 
         this.publicSubnets = new Array<EC2.CfnSubnet>();
@@ -139,6 +140,21 @@ export class NetworkStack extends cdk.Stack {
             routeTableId: privateRouteTableB.ref, destinationCidrBlock: "0.0.0.0/0", natGatewayId: publicSubnetBNATGW.ref
         });
 
+        var lbSecurityGroup = new EC2.CfnSecurityGroup(this, PREFIX+"lb-sg", {
+            groupName: PREFIX+"lb-sg", groupDescription: PREFIX+"lb-sg", vpcId: vpc.ref, securityGroupIngress: [
+                { ipProtocol: "tcp", fromPort: 80, toPort: 80, cidrIp: "0.0.0.0/0" }
+            ]
+        });        
+        lbSecurityGroup.tags.setTag(NAME, PREFIX + "lb-sg");
+        metaData.LBSecurityGroup = lbSecurityGroup;
+
+        var webSecurityGroup = new EC2.CfnSecurityGroup(this, PREFIX+"web-sg", {
+            groupName: PREFIX+"web-sg", groupDescription: PREFIX+"web-sg", vpcId: vpc.ref, securityGroupIngress: [
+                { ipProtocol: "tcp", fromPort: 80, toPort: 80, sourceSecurityGroupId: lbSecurityGroup.ref }
+            ]
+        });
+        webSecurityGroup.tags.setTag(NAME, PREFIX + "web-sg");
+        metaData.WebSecurityGroup = webSecurityGroup;
         //CfnSubnetNetworkAclAssociation
     }        
 }

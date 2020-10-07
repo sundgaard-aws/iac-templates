@@ -17,6 +17,8 @@ export class MetaData {
     public VPC: EC2.IVpc;
     public VPCRef: string;
     PublicSubnets: EC2.CfnSubnet[];
+    LBSecurityGroup: EC2.CfnSecurityGroup;
+    WebSecurityGroup: EC2.CfnSecurityGroup;
     constructor() {
     }
     

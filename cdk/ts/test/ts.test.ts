@@ -15,7 +15,7 @@ test('Empty Stack', () => {
     var props = {env: {account: "CDK_DEFAULT_ACCOUNT", region: "eu-north-1" } };
     var metaData = new MetaData();
 
-    const networkStack = new ns.NetworkStack(app, 'NetworkTestStack', props);
+    const networkStack = new ns.NetworkStack(app, 'NetworkTestStack', metaData, props);
     metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
       vpcName: PREFIX + "primary-vpc", isDefault: false, tags: {"Name": PREFIX+"primary-vpc"}
     });

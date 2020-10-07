@@ -34,7 +34,8 @@ export class ClassicWebStack extends Core.Stack {
 
         var alb = new CfnLoadBalancer(this, PREFIX+"web-alb", {
             //name: PREFIX+"web-alb", type: "application",
-            ipAddressType: "ipv4",            
+            ipAddressType: "ipv4",       
+            securityGroups: [metaData.LBSecurityGroup.ref],
             //subnets: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
             subnets: [metaData.PublicSubnets[0].ref, metaData.PublicSubnets[1].ref],
             scheme: "internet-facing" // internal | internet-facing            
@@ -71,12 +72,13 @@ export class ClassicWebStack extends Core.Stack {
                 instanceType: "t3.micro",
                 imageId: "ami-0653812935d0743fe", // Varies per region
                 ebsOptimized: false,
+                securityGroups: [metaData.WebSecurityGroup.ref],
                 userData: this.buildHttpServer()
             }
         });        
         
         var asg = new ASC.CfnAutoScalingGroup(this, PREFIX+"asg", {
-            maxSize: "4", minSize: "2", autoScalingGroupName: PREFIX+"asg", launchTemplate: { launchTemplateId: launchTemplate.ref, version: "1" },             
+            maxSize: "4", minSize: "2", autoScalingGroupName: PREFIX+"asg", launchTemplate: { launchTemplateId: launchTemplate.ref, version: launchTemplate.attrLatestVersionNumber },             
             desiredCapacity: "2",
             healthCheckType: "ELB", healthCheckGracePeriod: 5, cooldown: "30",
             availabilityZones: [metaData.VPC.privateSubnets[0].availabilityZone, metaData.VPC.privateSubnets[1].availabilityZone],
@@ -89,12 +91,18 @@ export class ClassicWebStack extends Core.Stack {
 
     private buildHttpServer(): string | undefined {
         var commandText = 
-        "yum update -y" +
-        "yum install httpd" +        
-        "echo \"<html><body><h1>Welcome to the IaC Demo Web Site</h1></body></html>\" > /var/www/html/index.html" +
-        "echo \"OK\" > /var/www/html/health.html" +
-        "systemctl start httpd" +
-        "systemctl enable httpd.service";
+        "#!/bin/bash\n" +        
+        "yum update -y\n" +
+        "cd /tmp\n" +
+        "yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm\n" +
+        "systemctl enable amazon-ssm-agent\n" +
+        "systemctl stop amazon-ssm-agent\n" +
+        "systemctl start amazon-ssm-agent\n" +
+        "yum install httpd -y\n" +        
+        "echo \"<html><body><h1>Welcome to the IaC Demo Web Site</h1></body></html>\" > /var/www/html/index.html\n" +
+        "echo \"OK\" > /var/www/html/health.html\n" +
+        "systemctl start httpd\n" +
+        "systemctl enable httpd.service\n";
         return Core.Fn.base64(commandText);
     }
 
