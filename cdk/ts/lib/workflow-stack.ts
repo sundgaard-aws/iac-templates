@@ -7,6 +7,7 @@ import StepFunctions = require('@aws-cdk/aws-stepfunctions');
 import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
 import { IVpc } from '@aws-cdk/aws-ec2';
 import { MetaData } from './meta-data';
+import { CfnFunction } from '@aws-cdk/aws-lambda';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";
@@ -50,6 +51,12 @@ export class WorkflowStack extends Core.Stack {
         var getStatusLambda = new Lambda.Function(this, PREFIX+"status-api-lam", { 
             functionName: PREFIX + "check-api-lfn", vpc: metaData.VPC, code: statusFunctionCodeFromLocalZip, handler: "index.mainHandler", runtime: runtime
         });
+        /*new CfnFunction(this, "dasd", {
+            vpcConfig: {
+                securityGroupIds: [],
+                subnetIds: []
+            }
+        });*/
 
         var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Job", {
             lambdaFunction: submitLambda,

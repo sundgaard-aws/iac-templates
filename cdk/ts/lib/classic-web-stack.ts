@@ -47,6 +47,14 @@ export class ClassicWebStack extends Core.Stack {
             port: 80, protocol: "HTTP", loadBalancerArn: alb.ref,             
             defaultActions: [
                 {
+                    type: "forward",
+                    forwardConfig: {
+                        targetGroups: [{
+                            targetGroupArn: this.targetGroup.ref
+                        }]                    
+                    }
+                }/*,
+                {
                     type: "redirect",
                     redirectConfig: {
                       protocol: "HTTPS",
@@ -56,7 +64,7 @@ export class ClassicWebStack extends Core.Stack {
                       port: "443",
                       statusCode: "HTTP_301"
                     }
-                }
+                }*/
             ]
         });
     }
@@ -72,7 +80,7 @@ export class ClassicWebStack extends Core.Stack {
                 instanceType: "t3.micro",
                 imageId: "ami-0653812935d0743fe", // Varies per region
                 ebsOptimized: false,
-                securityGroups: [metaData.WebSecurityGroup.ref],
+                securityGroupIds: [metaData.WebSecurityGroup.ref],
                 userData: this.buildHttpServer()
             }
         });        
