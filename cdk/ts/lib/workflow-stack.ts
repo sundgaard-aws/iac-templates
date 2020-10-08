@@ -91,9 +91,10 @@ export class WorkflowStack extends Core.Stack {
         var definition = submitJob.next(waitX).next(getStatus).next(new StepFunctions.Choice(this, "Job Complete?").when(StepFunctions.Condition.stringEquals("$.status", "FAILED"), jobFailed)
         .when(StepFunctions.Condition.stringEquals("$.status", "SUCCEEDED"), finalStatus).otherwise(waitX));
 
-        new StepFunctions.StateMachine(this, "StateMachine", {
+        var stateMachine = new StepFunctions.StateMachine(this, "StateMachine", {
             definition: definition,
-            timeout: Core.Duration.minutes(5)
+            timeout: Core.Duration.minutes(5),
+            stateMachineName: PREFIX+"trade-stm"
         });
     }
 
