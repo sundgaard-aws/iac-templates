@@ -78,7 +78,7 @@ export class ClassicWebStack extends Core.Stack {
             launchTemplateName: PREFIX+"ltm", launchTemplateData: { 
                 //imageId: amznLinux.getImage(this).imageId
                 instanceType: "t3.micro",
-                imageId: "ami-0653812935d0743fe", // Varies per region
+                imageId: ami.getImage(this).imageId, //"ami-0653812935d0743fe", // Varies per region
                 ebsOptimized: false,
                 securityGroupIds: [metaData.WebSecurityGroup.ref],
                 userData: this.buildHttpServer()
