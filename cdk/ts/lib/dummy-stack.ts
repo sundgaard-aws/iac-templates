@@ -12,6 +12,6 @@ export class DummyStack extends cdk.Stack {
     // The code that defines your stack goes here
     this.L1VPC = EC2.Vpc.fromLookup(this, "VPC", {
             vpcName: PREFIX + "primary-vpc"
-        });
+    });
   }
 }
