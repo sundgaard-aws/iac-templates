@@ -1,4 +1,6 @@
 # Welcome to your CDK TypeScript project!
+Install the CDK
+npm install -g aws-cdk
 
 This is a blank project for TypeScript development with CDK.
 
