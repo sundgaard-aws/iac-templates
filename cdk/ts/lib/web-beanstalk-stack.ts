@@ -36,8 +36,13 @@ export class BeanstalkWebStack extends cdk.Stack {
             {
                 namespace: "aws:ec2:vpc",
                 optionName: "Subnets",
-                value: metaData.PublicSubnets[0].ref
-            },                      
+                value: metaData.PrivateSubnets[0].ref + "," + metaData.PrivateSubnets[1].ref
+            },    
+            {
+                namespace: "aws:ec2:vpc",
+                optionName: "ELBSubnets",
+                value: metaData.PublicSubnets[0].ref + "," + metaData.PublicSubnets[1].ref
+            },                                
             {
                 namespace: 'aws:autoscaling:launchconfiguration',
                 optionName: 'IamInstanceProfile',
@@ -72,7 +77,7 @@ export class BeanstalkWebStack extends cdk.Stack {
             //solutionStackName: '64bit Amazon Linux 2018.03 v4.11.0 running Node.js',
             optionSettings: optionSettingProperties,
             // This line is critical - reference the label created in this same stack
-            versionLabel: appVersionProps.ref,
+            versionLabel: appVersionProps.ref            
         });
         // Also very important - make sure that `app` exists before creating an app version
         appVersionProps.addDependsOn(app);

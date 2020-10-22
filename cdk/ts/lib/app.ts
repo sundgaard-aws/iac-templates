@@ -22,6 +22,7 @@ metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
 });
 metaData.VPCRef = networkStack.VPCRef;
 metaData.PublicSubnets = networkStack.publicSubnets;
+metaData.PrivateSubnets = [networkStack.privateSubnetA,networkStack.privateSubnetB];
 
 console.log("vpc-id="+metaData.VPC.vpcId);
 metaData.VPC.privateSubnets.forEach(privateSubnet => {
@@ -37,5 +38,5 @@ metaData.VPC.publicSubnets.forEach(publicSubnet => {
 
 new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
 new ClassicWebStack(app, 'DemoClassicWebStack', metaData, props);
-new BeanstalkWebStack(app, 'DemoBeanstalkWebStack', metaData, props);
+//new BeanstalkWebStack(app, 'DemoBeanstalkWebStack', metaData, props);
 new DummyStack(app, 'DemoDummyStack', props);
