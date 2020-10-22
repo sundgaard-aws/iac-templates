@@ -21,12 +21,23 @@ export class BeanstalkWebStack extends cdk.Stack {
         });
 
         // Example of some options which can be configured
+        // https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/vpc-rds.html
         const optionSettingProperties: ELBN.CfnEnvironment.OptionSettingProperty[] = [
             {
                 namespace: 'aws:autoscaling:launchconfiguration',
                 optionName: 'InstanceType',
                 value: 't3.micro',
             },
+            {
+                namespace: "aws:ec2:vpc",
+                optionName: "VPCId",
+                value: metaData.VPCRef
+            },
+            {
+                namespace: "aws:ec2:vpc",
+                optionName: "Subnets",
+                value: metaData.PublicSubnets[0].ref
+            },                      
             {
                 namespace: 'aws:autoscaling:launchconfiguration',
                 optionName: 'IamInstanceProfile',
