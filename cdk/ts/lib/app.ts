@@ -10,6 +10,7 @@ import { env } from 'process';
 import EC2 = require('@aws-cdk/aws-ec2');
 import { runInNewContext } from 'vm';
 import { BeanstalkWebStack } from './web-beanstalk-stack';
+import { CodeStarStack } from './code-star-stack';
 
 const app = new cdk.App();
 const PREFIX = "iac-demo-";
@@ -39,4 +40,5 @@ metaData.VPC.publicSubnets.forEach(publicSubnet => {
 new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
 new ClassicWebStack(app, 'DemoClassicWebStack', metaData, props);
 //new BeanstalkWebStack(app, 'DemoBeanstalkWebStack', metaData, props);
+new CodeStarStack(app, 'DemoCodeStarStack', metaData, props);
 new DummyStack(app, 'DemoDummyStack', props);
