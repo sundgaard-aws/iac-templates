@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Resources:
   S3BuildBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Delete
+    DeletionPolicy: Retain
     Properties:
         BucketName: 'iac-demo-build-bucket-s3'
         AccessControl: Private
@@ -18,7 +18,7 @@ Resources:
       Description: iac-demo-codebuild-project
       Artifacts:
         Type: 'CODEPIPELINE'
-      ServiceRole: 'arn:aws:iam::299199322523:role/service-role/tomcat-web-project-service-role'
+      ServiceRole: 'arn:aws:iam::299199322523:role/iac-demo-code-build-project-service-role'
       Environment: 
         Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
         ComputeType: BUILD_GENERAL1_SMALL
@@ -39,16 +39,16 @@ Resources:
             - Name: GetSource
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
+                Owner: AWS
                 Version: 1
-                Provider: GitHub
+                Provider: CodeStarSourceConnection
               OutputArtifacts:
                   -  Name: Source
               Configuration:
-                Owner: sundgaard-aws
-                Repo: simple-java-bootstrap-app
-                Branch: main
-                OAuthToken: '{{resolve:secretsmanager:github-pat:SecretString}}'
+                ConnectionArn: arn:aws:codestar-connections:eu-central-1:299199322523:connection/a7d89539-29f7-4530-b191-92282b663b27
+                FullRepositoryId: "sundgaard-aws/simple-java-bootstrap-app"
+                BranchName: main
+                OutputArtifactFormat: CODE_ZIP
         - Name: Build
           Actions:
             - Name: StartBuild
@@ -63,4 +63,22 @@ Resources:
                 - Name: Built
               Configuration: 
                 ProjectName: !Ref CBProject                
+        - Name: Deploy
+          Actions:
+            - Name: StartDeploy
+              InputArtifacts:
+                - Name: Built
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeploy
+              Configuration: 
+                ApplicationName: 'iac-demo-app'
+                DeploymentGroupName: 'iac-demo-app-dg'
     DependsOn: CBProject 
+  CodeDeployApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+        ApplicationName: 'iac-demo-application'
+        ComputePlatform: Server    

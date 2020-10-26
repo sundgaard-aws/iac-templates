@@ -26,3 +26,4 @@ https://docs.aws.amazon.com/cli/latest/userguide/cli-usage-output.html#cli-usage
 https://docs.aws.amazon.com/code-samples/latest/catalog/cloudformation-codepipeline-template-codepipeline-github-events-yaml.yml.html
 https://gist.github.com/adebesin/6a9cfaa4b4fa13000dac7e95e09ccb22
 https://github.com/bitwalker/distillery-aws-example/blob/master/templates/pipeline.yml
+https://github.com/symphoniacloud/github-codepipeline
