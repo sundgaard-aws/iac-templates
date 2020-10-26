@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  CBSourceCredentials:
+    Type: 'AWS::CodeBuild::SourceCredential'AWS::CodeBuild::Project Source
+    Properties:
+      ServerType: 'GITHUB'
+      Token: '{{resolve:secretsmanager:github-pat:SecretString}}'
+      AuthType: 'PERSONAL_ACCESS_TOKEN'      
+  CBProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: iac-demo-codebuild-project
+      Description: iac-demo-codebuild-project
+    DependsOn:
+      - CBSourceCredentials
+      - CSGitHubRepo
+  CSGitHubRepo:
+    Type: 'AWS::CodeStar::GitHubRepository'
+    Properties:
+      RepositoryName: 'simple-java-bootstrap-app'
+      RepositoryAccessToken: 'a'
+      RepositoryOwner: 'b'
+      

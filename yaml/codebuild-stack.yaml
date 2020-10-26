@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  S3BuildBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+        BucketName: 'iac-demo-build-bucket-s3'
+        AccessControl: Private
+        VersioningConfiguration:
+          Status: Suspended
+        Tags:
+          - Key: Name
+            Value: 'iac-demo-build-bucket-s3'
+  CBProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: iac-demo-codebuild-project
+      Description: iac-demo-codebuild-project
+      Artifacts:
+        Type: 'CODEPIPELINE'
+      ServiceRole: 'arn:aws:iam::299199322523:role/service-role/tomcat-web-project-service-role'
+      Environment: 
+        Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
+        ComputeType: BUILD_GENERAL1_SMALL
+        Type: 'LINUX_CONTAINER'
+      Source:
+        Type: 'CODEPIPELINE'        
+  CBPipeline:        
+    Type: AWS::CodePipeline::Pipeline 
+    Properties: 
+      Name: 'iac-demo-pipeline'
+      RoleArn: arn:aws:iam::299199322523:role/service-role/tomcat-web-pipeline-role
+      ArtifactStore: 
+        Type: S3
+        Location: !Ref S3BuildBucket
+      Stages: 
+        - Name: Source
+          Actions:
+            - Name: GetSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                  -  Name: Source
+              Configuration:
+                Owner: sundgaard-aws
+                Repo: simple-java-bootstrap-app
+                Branch: main
+                OAuthToken: '{{resolve:secretsmanager:github-pat:SecretString}}'
+        - Name: Build
+          Actions:
+            - Name: StartBuild
+              InputArtifacts:
+                - Name: Source
+              ActionTypeId: 
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              OutputArtifacts:
+                - Name: Built
+              Configuration: 
+                ProjectName: !Ref CBProject                
+    DependsOn: CBProject 

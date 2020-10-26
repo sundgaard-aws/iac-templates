@@ -1,8 +1,8 @@
 import cdk = require('@aws-cdk/core');
-import { BuildSpec,BuildEnvironmentVariable, PipelineProject, LinuxBuildImage, ComputeType } from '@aws-cdk/aws-codebuild'
+import { BuildSpec,BuildEnvironmentVariable, PipelineProject, LinuxBuildImage, ComputeType, Project } from '@aws-cdk/aws-codebuild'
 import { Repository } from '@aws-cdk/aws-codecommit'
 import { Pipeline, Artifact } from '@aws-cdk/aws-codepipeline';
-import {CodeBuildAction,CodeCommitSourceAction,CodeCommitTrigger } from '@aws-cdk/aws-codepipeline-actions';
+import {CodeBuildAction,CodeCommitSourceAction,CodeCommitTrigger, GitHubSourceAction } from '@aws-cdk/aws-codepipeline-actions';
 import {PolicyStatement,Effect} from '@aws-cdk/aws-iam';
 import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3';
 import { RemovalPolicy } from '@aws-cdk/core';
@@ -18,111 +18,43 @@ export class CodeStarStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, metaData: MetaData, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // =====
-    // Input: CodeCommit Repository    
-    // Uncomment this to use
-    // existing CodeCommit repository
-    // const repo = Repository.fromRepositoryName(this,"hugorepository","myhugorepositoryname")
-    // =====
-    
-    // =====
-    // CodeCommit repository
-    const repo = new Repository(this,'hugorepository',{
-      repositoryName: 'myhugorepositoryname',
+    const pipeline = new Pipeline(this, PREFIX + 'pipeline', {
+      pipelineName: PREFIX + 'pipeline',
     });
-    const branch = 'master';
-    // =====
-    
-    
-    // =====
-    // Websitebucket
-    // new Bucket
-    const bucket = new Bucket(this,'websitebucket',
-    {
-      websiteIndexDocument: "index.html",
-      websiteErrorDocument: "error.html",
-      accessControl: BucketAccessControl.PUBLIC_READ,
-      removalPolicy: RemovalPolicy.DESTROY
+    var githubSource = this.buildGitHubSource(pipeline);
+
+    var buildProject = new Project(this, PREFIX+"build-project", {
+      projectName: PREFIX+"build-project",
+      source: {type: "GitHub", badgeSupported: false, }
     });
-    const bucketPolicy = new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: [
-        "s3:Put*",
-        "s3:Get*",
-        "s3:List*"
-        
-      ],
-      resources: [bucket.arnForObjects("*")]
-    });
-    bucketPolicy.addServicePrincipal("codebuild.amazonaws.com");
-    bucket.addToResourcePolicy(bucketPolicy);
-    const websitebucket: BuildEnvironmentVariable = { value: bucket.bucketName};
-    const websiteUrl: BuildEnvironmentVariable = { value: bucket.bucketWebsiteUrl};
-    // or use existing bucket
-    // const websitebucket: BuildEnvironmentVariable = { value: 'mywebsitebucketname};
-    // =====
-
-    const outputCodeCommit = new Artifact('code-commit-output');
-    this.projectName = "gohugo";
-    const deployArtifacts = new Artifact('cfn_templates')
     
+    //BuildSpec.
 
-    const codeCommitSourceAction = new CodeCommitSourceAction(
-      {
-        actionName: 'CodeCommitAction',
-        repository: repo,
-        branch: branch,
-        trigger: CodeCommitTrigger.EVENTS,
-        output: outputCodeCommit,
-      }
-    );
-
-    
-    const project = new PipelineProject(this, `${this.projectName}-codebuild`, {
-      buildSpec: BuildSpec.fromSourceFilename('buildspec.yml'),
-      description: "Hugo Website Deployment",
+    /*const pipelineProject = new PipelineProject(this, PREFIX+"pipeline-project", {
+      //buildSpec: BuildSpec.fromSourceFilename('buildspec.yml'),
+      description: PREFIX+"pipeline-project",
       environment: {
         buildImage:  LinuxBuildImage.STANDARD_2_0,
         computeType: ComputeType.SMALL,
         privileged: true,
       },
       environmentVariables: {
-        'bucket':websitebucket,
-        'baseurl': websiteUrl,
       },
-    });
 
-    project.addToRolePolicy(new PolicyStatement({
-      actions: [    
-        "s3:Put*",
-        "s3:Get*",
-        "s3:Create*",
-        "s3:Replicate*",
-        "s3:Delete*",
-        "s3:List*",
-        "s3:ListBucket"
-      ],
-      effect: Effect.ALLOW,
-      resources:  [
-        "arn:aws:s3:::"+websitebucket.value+"/*",
-        "arn:aws:s3:::"+websitebucket.value
-    ],
-    }))
-    
-    const codeBuildAction = new CodeBuildAction({
-      actionName: 'build',
-      input: outputCodeCommit,
-      outputs:[deployArtifacts],
-      project: project,
-    });
+    });*/
 
-    // The code that defines your stack goes here
-    this.pipeline = new Pipeline(this, this.projectName, {
+   
+    /*const codeBuildAction = new CodeBuildAction( {
+      input: {},
+
+    });*/
+
+    /*this.pipeline = new Pipeline(this, this.projectName, {
       stages: [
         {
           stageName: 'Source',
           actions: [
-            codeCommitSourceAction
+            
           ]
         },
         {
@@ -132,19 +64,26 @@ export class CodeStarStack extends cdk.Stack {
           ]
         }
       ]
-    });
-
-    // =====
-    // Output
-    new cdk.CfnOutput(this, 'websitebucketout',{
-      description: "Bucket name of website bucket",
-      value: bucket.bucketName,
-        })
-    new cdk.CfnOutput(this,'repocloneurl',{
-      description: "git remote add origin <this>",
-      value: repo.repositoryCloneUrlHttp,
-    })
-    // =====
+    });*/
 
   }
+
+  private buildGitHubSource(pipeline: Pipeline):GitHubSourceAction {
+    // Read the secret from Secrets Manager
+    const sourceOutput = new Artifact();
+    const sourceAction = new GitHubSourceAction({
+      actionName: 'GitHub_Source',
+      owner: 'awslabs',
+      repo: 'aws-cdk',      
+      oauthToken: cdk.SecretValue.secretsManager('my-github-token'),
+      output: sourceOutput,
+      branch: 'develop', // default: 'master'
+    });
+    pipeline.addStage({
+      stageName: 'Source',
+      actions: [sourceAction],
+    });
+
+    return sourceAction;
+  };
 }

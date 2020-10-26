@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:     
+  CBProject:
+    Type: 'AWS::CodeBuild::Project'
+    Properties:
+      Name: iac-demo-codebuild-project
+      Description: iac-demo-codebuild-project
+      Artifacts:
+        Type: 'CODEPIPELINE'
+      ServiceRole: 'arn:aws:iam::299199322523:role/service-role/tomcat-web-project-service-role'
+      Environment: 
+        Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
+        ComputeType: BUILD_GENERAL1_SMALL
+        Type: 'LINUX_CONTAINER'
+      Source:
+        Type: 'GITHUB'
+        Location: 'https://github.com/sundgaard-aws/simple-java-bootstrap-app.git'
