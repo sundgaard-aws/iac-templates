@@ -27,3 +27,5 @@ https://docs.aws.amazon.com/code-samples/latest/catalog/cloudformation-codepipel
 https://gist.github.com/adebesin/6a9cfaa4b4fa13000dac7e95e09ccb22
 https://github.com/bitwalker/distillery-aws-example/blob/master/templates/pipeline.yml
 https://github.com/symphoniacloud/github-codepipeline
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#aws-resource-codedeploy-deploymentgroup--examples
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html

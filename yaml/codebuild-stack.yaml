@@ -80,5 +80,29 @@ Resources:
   CodeDeployApplication:
     Type: AWS::CodeDeploy::Application
     Properties:
-        ApplicationName: 'iac-demo-application'
+        ApplicationName: 'iac-demo-app'
         ComputePlatform: Server    
+  CodeDeployDeploymentGroup: 
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties: 
+      DeploymentGroupName: "iac-demo-app-dg"
+      ApplicationName: "iac-demo-app"      
+      Ec2TagFilters: 
+        - Key: "Name"
+          Value: "iac-demo-web-ec2"
+          Type: "KEY_AND_VALUE"
+      ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      Path: /
+      RoleName: 'iac-demo-code-deploy-service-role'
+      AssumeRolePolicyDocument: 
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "codedeploy.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"        
