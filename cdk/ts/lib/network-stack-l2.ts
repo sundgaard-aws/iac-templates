@@ -31,27 +31,35 @@ export class NetworkStackL2 extends Core.Stack {
             maxAzs: 2
         });
         
+        this.tagVPCResources(vpc);
+        
+        return vpc;
+    }
+    
+    private tagVPCResources(vpc: EC2.Vpc) {
         Core.Tags.of(vpc).add(NAME, PREFIX+"vpc");
-        Core.Tags.of(vpc).add(NAME, PREFIX+"igw", { includeResourceTypes: ["AWS::EC2::InternetGateway"]});
+        Core.Tags.of(vpc).add(NAME, PREFIX+"igw", { includeResourceTypes: [EC2.CfnInternetGateway.CFN_RESOURCE_TYPE_NAME]});
+        Core.Tags.of(vpc).add(NAME, PREFIX+"nat", { includeResourceTypes: [EC2.CfnNatGateway.CFN_RESOURCE_TYPE_NAME]});
+        Core.Tags.of(vpc).add(NAME, PREFIX+"default-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
+        Core.Tags.of(vpc).add(NAME, PREFIX+"default-sg", { includeResourceTypes: [EC2.CfnSecurityGroup.CFN_RESOURCE_TYPE_NAME]});
         
         vpc.publicSubnets.forEach( subnet => {
-            Core.Tags.of(subnet).add(NAME, PREFIX+"public-sne", { includeResourceTypes: ["AWS::EC2::Subnet"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"public-rt", { includeResourceTypes: ["AWS::EC2::RouteTable"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"public-nacl", { includeResourceTypes: ["AWS::EC2::NetworkAcl"]});
+            
+            Core.Tags.of(subnet).add(NAME, PREFIX+"public-sne", { includeResourceTypes: [EC2.CfnSubnet.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"public-rt", { includeResourceTypes: [EC2.CfnRouteTable.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"public-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
         });
         
         vpc.privateSubnets.forEach( subnet => {
-            Core.Tags.of(subnet).add(NAME, PREFIX+"private-sne", { includeResourceTypes: ["AWS::EC2::Subnet"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"private-rt", { includeResourceTypes: ["AWS::EC2::RouteTable"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"private-nacl", { includeResourceTypes: ["AWS:EC2:NetworkAcl"]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"private-sne", { includeResourceTypes: [EC2.CfnSubnet.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"private-rt", { includeResourceTypes: [EC2.CfnRouteTable.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"private-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
         });
         
         vpc.isolatedSubnets.forEach( subnet => {
-            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-sne", { includeResourceTypes: ["AWS::EC2::Subnet"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-rt", { includeResourceTypes: ["AWS::EC2::RouteTable"]});
-            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-nacl", { includeResourceTypes: ["AWS::EC2::NetworkAcl"]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-sne", { includeResourceTypes: [EC2.CfnSubnet.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-rt", { includeResourceTypes: [EC2.CfnRouteTable.CFN_RESOURCE_TYPE_NAME]});
+            Core.Tags.of(subnet).add(NAME, PREFIX+"isolated-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
         });
-        
-        return vpc;
     }
 }
