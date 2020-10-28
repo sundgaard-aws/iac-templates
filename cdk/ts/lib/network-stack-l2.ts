@@ -7,13 +7,7 @@ const PREFIX = "iac-demo-";
 const NAME = "Name";
 
 export class NetworkStackL2 extends Core.Stack {
-    public VPCRef:string;
-    public L1VPC:EC2.IVpc;
-    public privateSubnetA:EC2.CfnSubnet;
-    public privateSubnetB:EC2.CfnSubnet;
-    public publicSubnetA:EC2.CfnSubnet;
-    public publicSubnetB:EC2.CfnSubnet;
-    public publicSubnets:Array<EC2.CfnSubnet>
+    public Vpc:EC2.IVpc;
 
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
@@ -30,10 +24,12 @@ export class NetworkStackL2 extends Core.Stack {
             ],
             maxAzs: 2
         });
+        this.Vpc = vpc;
         
         var publicNacl = this.createPublicNacl(vpc);
         vpc.publicSubnets.forEach( subnet => { subnet.associateNetworkAcl(PREFIX+"public-nacl-assoc", publicNacl) } );
         var privateNacl = this.createPrivateNacl(vpc);
+        vpc.privateSubnets.forEach( subnet => { subnet.associateNetworkAcl(PREFIX+"private-nacl-assoc", privateNacl) } );
         
         this.tagVPCResources(vpc);
         
@@ -106,9 +102,12 @@ export class NetworkStackL2 extends Core.Stack {
     
     private tagVPCResources(vpc: EC2.Vpc) {
         Core.Tags.of(vpc).add(NAME, PREFIX+"vpc");
-        Core.Tags.of(vpc).add(NAME, PREFIX+"igw", { includeResourceTypes: [EC2.CfnInternetGateway.CFN_RESOURCE_TYPE_NAME]});
+        Core.Tags.of(vpc).add(NAME, PREFIX+"igw", { includeResourceTypes: [EC2.CfnInternetGateway.CFN_RESOURCE_TYPE_NAME] });
         Core.Tags.of(vpc).add(NAME, PREFIX+"nat", { includeResourceTypes: [EC2.CfnNatGateway.CFN_RESOURCE_TYPE_NAME]});
         Core.Tags.of(vpc).add(NAME, PREFIX+"default-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
+        var defaultNacl = EC2.NetworkAcl.fromNetworkAclId(vpc, PREFIX+"vpc", vpc.vpcDefaultNetworkAcl);
+        Core.Tags.of(defaultNacl).add(NAME, PREFIX+"default-nacl-new");
+        
         Core.Tags.of(vpc).add(NAME, PREFIX+"default-sg", { includeResourceTypes: [EC2.CfnSecurityGroup.CFN_RESOURCE_TYPE_NAME]});
         
         vpc.publicSubnets.forEach( subnet => {

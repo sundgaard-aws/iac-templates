@@ -10,33 +10,15 @@ import { env } from 'process';
 import EC2 = require('@aws-cdk/aws-ec2');
 import { runInNewContext } from 'vm';
 import { NetworkStackL2 } from './network-stack-l2';
+import { ClassicWebStackL2 } from './classic-web-stack-l2';
 
 const app = new cdk.App();
-const PREFIX = "iac-demo-";
 var props = {env: {account: process.env["CDK_DEFAULT_ACCOUNT"], region: process.env["CDK_DEFAULT_REGION"] } };
 var metaData = new MetaData();
 
-var networkStackL2 = new NetworkStackL2(app, PREFIX+"network-stack", metaData, props);
-var networkStack = new NetworkStack(app, 'DemoNetworkStack', metaData, props);
+var networkStackL2 = new NetworkStackL2(app, metaData.PREFIX+"network-stack", metaData, props);
+metaData.VPC = networkStackL2.Vpc;
 
-metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
-    isDefault: false, vpcName: PREFIX + "primary-vpc"//, tags: {"Name": PREFIX+"primary-vpc"}
-});
-metaData.VPCRef = networkStack.VPCRef;
-metaData.PublicSubnets = networkStack.publicSubnets;
+new ClassicWebStackL2(app, metaData.PREFIX+"web-stack", metaData, props);
+//new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
 
-console.log("vpc-id="+metaData.VPC.vpcId);
-metaData.VPC.privateSubnets.forEach(privateSubnet => {
-    console.log("vpc-private-subnet-subnetId="+privateSubnet.subnetId);
-    console.log("vpc-private-subnet-availabilityZone="+privateSubnet.availabilityZone);
-    //console.log("vpc-private-subnet-ipv4CidrBlock="+privateSubnet.ipv4CidrBlock);
-});
-metaData.VPC.publicSubnets.forEach(publicSubnet => {
-    console.log("vpc-publicSubnet-subnet-subnetId="+publicSubnet.subnetId);
-    console.log("vpc-publicSubnet-subnet-availabilityZone="+publicSubnet.availabilityZone);
-    //console.log("vpc-private-subnet-ipv4CidrBlock="+privateSubnet.ipv4CidrBlock);
-});
-
-new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
-new ClassicWebStack(app, 'DemoClassicWebStack', metaData, props);
-new DummyStack(app, 'DemoDummyStack', props);

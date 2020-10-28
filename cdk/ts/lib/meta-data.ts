@@ -10,10 +10,9 @@ import * as ELB from '@aws-cdk/aws-elasticloadbalancingv2';
 import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
 
 
-const PREFIX = "iac-demo-";
-const NAME = "Name";
-
 export class MetaData {
+    public readonly PREFIX = "iac-demo-";
+    public readonly NAME = "Name";
     public VPC: EC2.IVpc;
     public VPCRef: string;
     PublicSubnets: EC2.CfnSubnet[];
