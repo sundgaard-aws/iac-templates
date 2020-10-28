@@ -93,10 +93,11 @@ export class ClassicWebStackL2 extends Core.Stack {
             managedPolicies: [
                 IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
                 IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess"),
-                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2RoleforAWSCodeDeploy"),
+                //IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2RoleforAWSCodeDeploy"),
+                //IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSCodeDeployRole")
                 IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess"),
-                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore"),
-                IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSCodeDeployRole")
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
+                //IAM.ManagedPolicy.fromManagedPolicyName(this, "AWSCodeDeployRole", "AWSCodeDeployRole")
             ]
         });
         Core.Tags.of(webRole).add(metaData.NAME, metaData.PREFIX+"web-role");
