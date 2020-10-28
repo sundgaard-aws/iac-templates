@@ -34,7 +34,7 @@ export class ClassicWebStackL2 extends Core.Stack {
         });
         
         var userData = EC2.UserData.custom(this.buildJavaEnabledServer());
-        var loadBalancerSecurityGroup = this.buildLoadBalancerSecurityGroup();
+        var loadBalancerSecurityGroup = this.buildLoadBalancerSecurityGroup(metaData);
 
         var asg = new ASC.AutoScalingGroup(this, metaData.PREFIX+"asg", {
             machineImage: amznLinux, 
@@ -75,9 +75,11 @@ export class ClassicWebStackL2 extends Core.Stack {
             allowAllOutbound: true
         });
         
+        securityGroup.connections.allowFrom(loadBalancerSecurityGroup, EC2.Port.tcp(80));
+        
         //webSecurityGroup.addIngressRule(EC2.Peer.anyIpv4(), EC2.Port.tcp(22), 'SSH frm anywhere');
-        securityGroup.addIngressRule(EC2.Peer.prefixList(loadBalancerSecurityGroup.securityGroupId), EC2.Port.tcp(80));
-        securityGroup.addIngressRule(EC2.Peer.ipv4(metaData.VPC.vpcCidrBlock), EC2.Port.allTraffic(), "HTTP from load balancer");
+        //securityGroup.addIngressRule(EC2.Peer.prefixList(loadBalancerSecurityGroup.securityGroupId), EC2.Port.tcp(80));
+        //securityGroup.addIngressRule(EC2.Peer.ipv4(metaData.VPC.vpcCidrBlock), EC2.Port.allTraffic(), "HTTP from load balancer");
         //webSecurityGroup.addIngressRule(EC2.Peer.ipv4('10.0.0.0/24'), EC2.Port.tcp(5439), 'Redshift Ingress2');
         Core.Tags.of(securityGroup).add(metaData.NAME, metaData.PREFIX+"web-sg");
         return securityGroup;
@@ -87,7 +89,15 @@ export class ClassicWebStackL2 extends Core.Stack {
         var webRole = new IAM.Role(this, metaData.PREFIX+"web-role", {
             description: "EC2 Web Role",
             roleName: metaData.PREFIX+"web-role",
-            assumedBy: new IAM.ServicePrincipal("")
+            assumedBy: new IAM.ServicePrincipal("ec2.amazonaws.com"),
+            managedPolicies: [
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2FullAccess"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSQSFullAccess"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2RoleforAWSCodeDeploy"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSCodeDeployRole")
+            ]
         });
         Core.Tags.of(webRole).add(metaData.NAME, metaData.PREFIX+"web-role");
         return webRole;
