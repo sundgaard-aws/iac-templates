@@ -21,12 +21,12 @@ export class CodeStarStack extends cdk.Stack {
     const pipeline = new Pipeline(this, PREFIX + 'pipeline', {
       pipelineName: PREFIX + 'pipeline',
     });
-    var githubSource = this.buildGitHubSource(pipeline);
+    /*var githubSource = this.buildGitHubSource(pipeline);
 
     var buildProject = new Project(this, PREFIX+"build-project", {
       projectName: PREFIX+"build-project",
       source: {type: "GitHub", badgeSupported: false, }
-    });
+    });*/
     
     //BuildSpec.
 
@@ -68,7 +68,7 @@ export class CodeStarStack extends cdk.Stack {
 
   }
 
-  private buildGitHubSource(pipeline: Pipeline):GitHubSourceAction {
+  /*private buildGitHubSource(pipeline: Pipeline):GitHubSourceAction {
     // Read the secret from Secrets Manager
     const sourceOutput = new Artifact();
     const sourceAction = new GitHubSourceAction({
@@ -85,5 +85,5 @@ export class CodeStarStack extends cdk.Stack {
     });
 
     return sourceAction;
-  };
+  };*/
 }

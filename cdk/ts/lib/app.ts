@@ -9,13 +9,14 @@ import { ClassicWebStack } from './classic-web-stack';
 import { env } from 'process';
 import EC2 = require('@aws-cdk/aws-ec2');
 import { runInNewContext } from 'vm';
-import { BeanstalkWebStack } from './web-beanstalk-stack';
-import { CodeStarStack } from './code-star-stack';
+import { NetworkStackL2 } from './network-stack-l2';
 
 const app = new cdk.App();
 const PREFIX = "iac-demo-";
 var props = {env: {account: process.env["CDK_DEFAULT_ACCOUNT"], region: process.env["CDK_DEFAULT_REGION"] } };
 var metaData = new MetaData();
+
+var networkStackL2 = new NetworkStackL2(app, PREFIX+"network-stack", metaData, props);
 var networkStack = new NetworkStack(app, 'DemoNetworkStack', metaData, props);
 
 metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
@@ -23,7 +24,6 @@ metaData.VPC = EC2.Vpc.fromLookup(networkStack, "VPC", {
 });
 metaData.VPCRef = networkStack.VPCRef;
 metaData.PublicSubnets = networkStack.publicSubnets;
-metaData.PrivateSubnets = [networkStack.privateSubnetA,networkStack.privateSubnetB];
 
 console.log("vpc-id="+metaData.VPC.vpcId);
 metaData.VPC.privateSubnets.forEach(privateSubnet => {
@@ -39,6 +39,4 @@ metaData.VPC.publicSubnets.forEach(publicSubnet => {
 
 new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
 new ClassicWebStack(app, 'DemoClassicWebStack', metaData, props);
-//new BeanstalkWebStack(app, 'DemoBeanstalkWebStack', metaData, props);
-new CodeStarStack(app, 'DemoCodeStarStack', metaData, props);
 new DummyStack(app, 'DemoDummyStack', props);
