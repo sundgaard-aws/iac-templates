@@ -31,10 +31,78 @@ export class NetworkStackL2 extends Core.Stack {
             maxAzs: 2
         });
         
+        var publicNacl = this.createPublicNacl(vpc);
+        vpc.publicSubnets.forEach( subnet => { subnet.associateNetworkAcl(PREFIX+"public-nacl-assoc", publicNacl) } );
+        var privateNacl = this.createPrivateNacl(vpc);
+        
         this.tagVPCResources(vpc);
         
         return vpc;
     }
+    
+    private createPublicNacl(vpc: EC2.Vpc):EC2.INetworkAcl {
+        var publicNacl = new EC2.NetworkAcl(this, PREFIX+"public-nacl", {
+            vpc: vpc,
+            networkAclName: PREFIX+"public-nacl",
+            subnetSelection: {
+                subnetType: EC2.SubnetType.PUBLIC
+            }
+        });
+        publicNacl.addEntry(PREFIX+"public-nacl-allow-all-inbound", {
+           cidr: EC2.AclCidr.anyIpv4(),
+           direction: EC2.TrafficDirection.INGRESS,
+           ruleAction: EC2.Action.ALLOW,
+           ruleNumber: 500,
+           traffic: EC2.AclTraffic.allTraffic(),
+           networkAclEntryName: "all-traffic"
+        });
+        publicNacl.addEntry(PREFIX+"public-nacl-allow-all-outbound", {
+           cidr: EC2.AclCidr.anyIpv4(),
+           direction: EC2.TrafficDirection.EGRESS,
+           ruleAction: EC2.Action.ALLOW,
+           ruleNumber: 500,
+           traffic: EC2.AclTraffic.allTraffic(),
+           networkAclEntryName: "all-traffic"
+        });        
+        Core.Tags.of(publicNacl).add(NAME, PREFIX+"public-nacl");
+        return publicNacl;
+    }
+    
+    private createPrivateNacl(vpc: EC2.Vpc):EC2.INetworkAcl {
+        var privateNacl = new EC2.NetworkAcl(this, PREFIX+"private-nacl", {
+            vpc: vpc,
+            networkAclName: PREFIX+"private-nacl",
+            subnetSelection: {
+                subnetType: EC2.SubnetType.PRIVATE
+            }
+        });
+        privateNacl.addEntry(PREFIX+"private-nacl-allow-all-inbound", {
+           cidr: EC2.AclCidr.anyIpv4(),
+           direction: EC2.TrafficDirection.INGRESS,
+           ruleAction: EC2.Action.ALLOW,
+           ruleNumber: 500,
+           traffic: EC2.AclTraffic.allTraffic(),
+           networkAclEntryName: "all-traffic"
+        });
+        privateNacl.addEntry(PREFIX+"private-nacl-deny-inbound-ssh", {
+           cidr: EC2.AclCidr.anyIpv4(),
+           direction: EC2.TrafficDirection.INGRESS,
+           ruleAction: EC2.Action.DENY,
+           ruleNumber: 100,
+           traffic: EC2.AclTraffic.tcpPort(22),
+           networkAclEntryName: "deny-ssh"
+        });        
+        privateNacl.addEntry(PREFIX+"private-nacl-allow-all-outbound", {
+           cidr: EC2.AclCidr.anyIpv4(),
+           direction: EC2.TrafficDirection.EGRESS,
+           ruleAction: EC2.Action.ALLOW,
+           ruleNumber: 500,
+           traffic: EC2.AclTraffic.allTraffic(),
+           networkAclEntryName: "all-traffic"
+        });
+        Core.Tags.of(privateNacl).add(NAME, PREFIX+"private-nacl");
+        return privateNacl;
+    }    
     
     private tagVPCResources(vpc: EC2.Vpc) {
         Core.Tags.of(vpc).add(NAME, PREFIX+"vpc");
@@ -44,7 +112,6 @@ export class NetworkStackL2 extends Core.Stack {
         Core.Tags.of(vpc).add(NAME, PREFIX+"default-sg", { includeResourceTypes: [EC2.CfnSecurityGroup.CFN_RESOURCE_TYPE_NAME]});
         
         vpc.publicSubnets.forEach( subnet => {
-            
             Core.Tags.of(subnet).add(NAME, PREFIX+"public-sne", { includeResourceTypes: [EC2.CfnSubnet.CFN_RESOURCE_TYPE_NAME]});
             Core.Tags.of(subnet).add(NAME, PREFIX+"public-rt", { includeResourceTypes: [EC2.CfnRouteTable.CFN_RESOURCE_TYPE_NAME]});
             Core.Tags.of(subnet).add(NAME, PREFIX+"public-nacl", { includeResourceTypes: [EC2.CfnNetworkAcl.CFN_RESOURCE_TYPE_NAME]});
