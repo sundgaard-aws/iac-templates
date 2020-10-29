@@ -38,6 +38,7 @@
     "@aws-cdk/core": "^1.69.0",
     "aws-sdk": "^2.779.0",
     "sam-cli": "^1.0.0",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "@types/uuid": "^8.3.0"
   }
 }

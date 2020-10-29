@@ -1,3 +1,4 @@
+import UUID = require("uuid");
 import * as Core from '@aws-cdk/core';
 import EC2 = require('@aws-cdk/aws-ec2');
 import IAM = require("@aws-cdk/aws-iam");
@@ -35,8 +36,10 @@ export class ClassicWebStackL2 extends Core.Stack {
         
         var userData = EC2.UserData.custom(this.buildJavaEnabledServer());
         var loadBalancerSecurityGroup = this.buildLoadBalancerSecurityGroup(metaData);
+        // AutoScaling groups can't be updated if the name persists, so we wan't a dynamic name but with a consistent prefix
+        var asgName = metaData.PREFIX+"web-asg-"+UUID.v4();
 
-        var asg = new ASC.AutoScalingGroup(this, metaData.PREFIX+"asg", {
+        var asg = new ASC.AutoScalingGroup(this, metaData.PREFIX+"web-asg", {
             machineImage: amznLinux, 
             vpc: metaData.VPC,
             updateType: ASC.UpdateType.REPLACING_UPDATE,
@@ -48,10 +51,12 @@ export class ClassicWebStackL2 extends Core.Stack {
             desiredCapacity: 2,
             maxCapacity: 4,
             minCapacity:0,
-            autoScalingGroupName: metaData.PREFIX+"asg",
+            autoScalingGroupName: asgName,
             userData: userData
         });
-        Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"asg");
+
+        Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"web-asg");
+        Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"web-ec2", { includeResourceTypes: [EC2.CfnInstance.CFN_RESOURCE_TYPE_NAME] });
     }
     
     private buildLoadBalancerSecurityGroup(metaData:MetaData): EC2.ISecurityGroup {
@@ -96,8 +101,10 @@ export class ClassicWebStackL2 extends Core.Stack {
                 //IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonEC2RoleforAWSCodeDeploy"),
                 //IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSCodeDeployRole")
                 IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess"),
-                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore"),
                 //IAM.ManagedPolicy.fromManagedPolicyName(this, "AWSCodeDeployRole", "AWSCodeDeployRole")
+                IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSCodeDeployRole", "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"),
+                IAM.ManagedPolicy.fromManagedPolicyArn(this, "AmazonEC2RoleforAWSCodeDeploy", "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy")
             ]
         });
         Core.Tags.of(webRole).add(metaData.NAME, metaData.PREFIX+"web-role");
@@ -108,6 +115,7 @@ export class ClassicWebStackL2 extends Core.Stack {
         
     }
     
+    // https://docs.aws.amazon.com/codedeploy/latest/userguide/codedeploy-agent-operations-install-linux.html
     private buildJavaEnabledServer(): string {
         var commandText = 
         "#!/bin/bash\n" +        
@@ -116,11 +124,19 @@ export class ClassicWebStackL2 extends Core.Stack {
         "yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm\n" +
         "systemctl enable amazon-ssm-agent\n" +
         "systemctl restart amazon-ssm-agent\n" +
-        "rpm --import https://yum.corretto.aws/corretto.key" +
-        "curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo" +
-        "yum update -y" +
-        "yum install -y java-11-amazon-corretto-devel" +
-        "yum install amazon-ssm-agent";
+        "rpm --import https://yum.corretto.aws/corretto.key\n" +
+        "curl -L -o /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo\n" +
+        "yum update -y\n" +
+        "yum install -y java-11-amazon-corretto-devel\n" +
+        "yum install amazon-ssm-agent\n" +
+        
+        "yum install ruby -y\n" +
+        "yum install wget\n" +
+        "cd /home/ec2-user\n" +
+        "wget https://aws-codedeploy-eu-central-1.s3.eu-central-1.amazonaws.com/latest/install\n" +
+        "chmod +x ./install\n" +
+        "./install auto\n" +
+        "service codedeploy-agent start\n";
         return Core.Fn.base64(commandText);
     }    
 }
