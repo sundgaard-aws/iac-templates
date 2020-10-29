@@ -39,7 +39,7 @@ export class ClassicWebStackL2 extends Core.Stack {
         return securityGroup;
     }    
     
-    private createLoadBalancer(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup, autoScalingGroup: ASC.IAutoScalingGroup) {
+    private createLoadBalancer(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup, autoScalingGroup: ASC.AutoScalingGroup) {
         var alb = new ELBv2.ApplicationLoadBalancer(this, metaData.PREFIX+"web-alb", {
            internetFacing: true,
            loadBalancerName: metaData.PREFIX+"web-alb",
@@ -49,13 +49,30 @@ export class ClassicWebStackL2 extends Core.Stack {
         });
         Core.Tags.of(alb).add(metaData.NAME, metaData.PREFIX+"web-alb");
         
+        // Create an AutoScaling group and add it as a load balancing target to the listener.
+        var tg = new ELBv2.ApplicationTargetGroup(this, "", {
+            targets: [autoScalingGroup],
+            targetGroupName: metaData.PREFIX+"web-tg",
+            port: 80,
+            protocol: ELBv2.ApplicationProtocol.HTTP
+        });
+        Core.Tags.of(tg).add(metaData.NAME, metaData.PREFIX+"web-tg");
+        //tg.addTarget(autoScalingGroup);*/
+        
+        
+        /*
         const listener = alb.addListener('Listener', {
           port: 80,
           open: true, // 'open: true' is the default, you can leave it out if you want. Set it to 'false' and use `listener.connections` if you want to be selective about who can access the load balancer.
-        });        
+        });
+
+        listener.addTargets('WebFleet', {
+          port: 80,
+          targets: [autoScalingGroup]
+        });*/        
     }
     
-    private createAutoScalingGroup(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup): ASC.IAutoScalingGroup {
+    private createAutoScalingGroup(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup): ASC.AutoScalingGroup {
         const amznLinux = EC2.MachineImage.latestAmazonLinux({
             generation: EC2.AmazonLinuxGeneration.AMAZON_LINUX_2
             /*edition: EC2.AmazonLinuxEdition.MINIMAL,
