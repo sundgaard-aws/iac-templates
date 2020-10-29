@@ -1,10 +1,29 @@
+const aws = require("aws-sdk");
 const { getuid } = require("process");
 
 function Program() {
     this.main = function(event) {
-        //validateToken(event);        
+        //validateToken(event);
+        startWorkflow(event);
         return reply(event);
     };
+    
+    var startWorkflow = function(event) {
+        // TODO Replace region and account
+        var params = {
+            stateMachineArn: "arn:aws:states:eu-central-1:299199322523:stateMachine:iac-demo-trade-stm",
+            input: JSON.stringify({message: "test"})
+        }
+        
+        var stepfunctions = new aws.StepFunctions();
+        /*stepfunctions.startExecution(params, function (err, data) {
+            if (err) {
+                console.log('err while executing step function')
+            } else {
+                console.log('started execution of step function')
+            }
+        });*/
+    }    
    
     var reply = function(event) {
         var allowedHeaders = "*";

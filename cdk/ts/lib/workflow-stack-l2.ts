@@ -77,7 +77,7 @@ export class WorkflowStackL2 extends Core.Stack {
     private createLambdaFunction(name:string, handlerMethod:string, assetPath:string, vpc:EC2.IVpc):Lambda.Function {
         var codeFromLocalZip = Lambda.Code.fromAsset(assetPath);
         var lambdaFunction = new Lambda.Function(this, this.metaData.PREFIX+name, { 
-            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime
+            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime 
         });
         Core.Tags.of(lambdaFunction).add(this.metaData.NAME, this.metaData.PREFIX+name);
         return lambdaFunction;
@@ -92,7 +92,7 @@ export class WorkflowStackL2 extends Core.Stack {
     }
 
     private createStepFunctionsTrigger(queue:SQS.IQueue) {
-        var sfnLambdaTriggerFunction = this.createLambdaFunction("invoke-sfn-api-lam", "index.mainHandler", "assets/invoke-sfn-api", this.metaData.VPC);
+        var sfnLambdaTriggerFunction = this.createLambdaFunction("invoke-sfn-api-lam", "index.mainHandler", "assets/invoke-sfn-api/", this.metaData.VPC);
         sfnLambdaTriggerFunction.addEventSource(new LambdaEvents.SqsEventSource(queue, {}));
     }    
     
