@@ -50,23 +50,23 @@ export class ClassicWebStackL2 extends Core.Stack {
         Core.Tags.of(alb).add(metaData.NAME, metaData.PREFIX+"web-alb");
         
         // Create an AutoScaling group and add it as a load balancing target to the listener.
-        var tg = new ELBv2.ApplicationTargetGroup(this, "", {
+        var tg = new ELBv2.ApplicationTargetGroup(this, metaData.PREFIX+"web-tg", {
             targets: [autoScalingGroup],
             targetGroupName: metaData.PREFIX+"web-tg",
             port: 80,
-            protocol: ELBv2.ApplicationProtocol.HTTP
+            protocol: ELBv2.ApplicationProtocol.HTTP,
+            vpc: metaData.VPC
         });
         Core.Tags.of(tg).add(metaData.NAME, metaData.PREFIX+"web-tg");
         //tg.addTarget(autoScalingGroup);*/
         
-        
-        /*
         const listener = alb.addListener('Listener', {
           port: 80,
+          defaultTargetGroups: [tg],
           open: true, // 'open: true' is the default, you can leave it out if you want. Set it to 'false' and use `listener.connections` if you want to be selective about who can access the load balancer.
         });
 
-        listener.addTargets('WebFleet', {
+        /*listener.addTargets('WebFleet', {
           port: 80,
           targets: [autoScalingGroup]
         });*/        

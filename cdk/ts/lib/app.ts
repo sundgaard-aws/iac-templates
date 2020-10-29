@@ -20,5 +20,5 @@ var networkStackL2 = new NetworkStackL2(app, metaData.PREFIX+"network-stack", me
 metaData.VPC = networkStackL2.Vpc;
 
 new ClassicWebStackL2(app, metaData.PREFIX+"web-stack", metaData, props);
-//new WorkflowStack(app, 'DemoWorkflowStack', metaData, props);
+new WorkflowStack(app, metaData.PREFIX+"workflow-stack", metaData, props);
 
