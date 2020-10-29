@@ -91,6 +91,9 @@ Resources:
         - Key: "Name"
           Value: "iac-demo-web-ec2"
           Type: "KEY_AND_VALUE"
+        - Key: "Name"
+          Value: "iac-demo-web-asg"
+          Type: "KEY_AND_VALUE"
       ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
