@@ -29,10 +29,11 @@ function Program() {
         var stepfunctions = new AWS.StepFunctions();
         console.log("starting workflow...");
         stepfunctions.startExecution(params, function (err, data) {
-            console.log("hello!");
+            console.log("workflow execution started...");
             if (err) {
-                console.error('err while executing step function');
-                console.error(err);
+                //throw new Error(err);
+                //console.error('err while executing step function');
+                console.log(err);
             } else {
                 console.log('successfully executed step function');
             }

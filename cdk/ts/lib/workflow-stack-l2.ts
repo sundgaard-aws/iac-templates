@@ -2,6 +2,7 @@ import * as Core from '@aws-cdk/core';
 import EC2 = require('@aws-cdk/aws-ec2');
 import S3 = require('@aws-cdk/aws-s3');
 import SQS = require('@aws-cdk/aws-sqs');
+import IAM = require("@aws-cdk/aws-iam");
 import Lambda = require('@aws-cdk/aws-lambda');
 import LambdaEvents = require('@aws-cdk/aws-lambda-event-sources');
 import StepFunctions = require('@aws-cdk/aws-stepfunctions');
@@ -13,11 +14,13 @@ import { CfnFunction } from '@aws-cdk/aws-lambda';
 export class WorkflowStackL2 extends Core.Stack {
     private runtime:Lambda.Runtime = Lambda.Runtime.NODEJS_12_X;
     private metaData:MetaData;
+    private apiRole:IAM.IRole;
 
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
 
         this.metaData = metaData;
+        this.apiRole = this.buildAPIRole();
         var queue = this.createSQSQueue();
         this.createStepFunctionsTrigger(queue);
         this.createStepFunctionStatesL2();
@@ -73,11 +76,27 @@ export class WorkflowStackL2 extends Core.Stack {
         });
         Core.Tags.of(stateMachine).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm");
     }
+    
+    private buildAPIRole(): IAM.IRole {
+        var role = new IAM.Role(this, this.metaData.PREFIX+"api-role", {
+            description: "Lambda API Role",
+            roleName: this.metaData.PREFIX+"api-role",
+            assumedBy: new IAM.ServicePrincipal("lambda.amazonaws.com"),
+            managedPolicies: [
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSStepFunctionsFullAccess"),
+                IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaSQSQueueExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"),
+                IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaBasicExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"),
+                IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaVPCAccessExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole")
+            ]
+        });
+        Core.Tags.of(role).add(this.metaData.NAME, this.metaData.PREFIX+"api-role");
+        return role;
+    }    
 
     private createLambdaFunction(name:string, handlerMethod:string, assetPath:string, vpc:EC2.IVpc):Lambda.Function {
         var codeFromLocalZip = Lambda.Code.fromAsset(assetPath);
         var lambdaFunction = new Lambda.Function(this, this.metaData.PREFIX+name, { 
-            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime 
+            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime, memorySize: 256, timeout: Core.Duration.seconds(20), role: this.apiRole
         });
         Core.Tags.of(lambdaFunction).add(this.metaData.NAME, this.metaData.PREFIX+name);
         return lambdaFunction;
