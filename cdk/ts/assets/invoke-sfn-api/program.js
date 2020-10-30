@@ -1,6 +1,13 @@
-const aws = require("aws-sdk");
+const AWS = require("aws-sdk");
+//const {DynamoDB} = require("aws-sdk");
 const { getuid } = require("process");
+//import * as sfn from '@aws-cdk/aws-stepfunctions';
+//const { getHttps } = require('https');
 
+//const {DynamoDB} = require('aws-sdk')
+//const s3 = new AWS.S3();
+
+// https://stackoverflow.com/questions/49907830/aws-lambda-function-times-out-when-i-require-aws-sdk-module/52009185
 function Program() {
     this.main = function(event) {
         //validateToken(event);
@@ -9,20 +16,28 @@ function Program() {
     };
     
     var startWorkflow = function(event) {
+        //var {DynamoDB} from 'aws-sdk' as dd;
         // TODO Replace region and account
         var params = {
             stateMachineArn: "arn:aws:states:eu-central-1:299199322523:stateMachine:iac-demo-trade-stm",
             input: JSON.stringify({message: "test"})
         }
         
-        var stepfunctions = new aws.StepFunctions();
-        /*stepfunctions.startExecution(params, function (err, data) {
+        //var AWS = require("aws-sdk");
+        //AWS.StepFunctions.
+        //var stepfunctions = new AWS.StepFunctions();
+        var stepfunctions = new AWS.StepFunctions();
+        console.log("starting workflow...");
+        stepfunctions.startExecution(params, function (err, data) {
+            console.log("hello!");
             if (err) {
-                console.log('err while executing step function')
+                console.error('err while executing step function');
+                console.error(err);
             } else {
-                console.log('started execution of step function')
+                console.log('successfully executed step function');
             }
-        });*/
+        });
+        console.log("workflow started...");
     }    
    
     var reply = function(event) {

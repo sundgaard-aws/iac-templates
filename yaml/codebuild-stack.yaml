@@ -86,7 +86,7 @@ Resources:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties: 
       DeploymentGroupName: "iac-demo-app-dg"
-      ApplicationName: "iac-demo-app"      
+      ApplicationName: "iac-demo-app"
       Ec2TagFilters: 
         - Key: "Name"
           Value: "iac-demo-web-ec2"
