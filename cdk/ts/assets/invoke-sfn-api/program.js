@@ -28,6 +28,8 @@ function Program() {
         //var stepfunctions = new AWS.StepFunctions();
         var stepfunctions = new AWS.StepFunctions();
         console.log("starting workflow...");
+        //var test =  stepfunctions.startExecution(params);
+        
         stepfunctions.startExecution(params, function (err, data) {
             console.log("workflow execution started...");
             if (err) {

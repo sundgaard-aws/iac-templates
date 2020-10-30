@@ -36,17 +36,17 @@ export class WorkflowStackL2 extends Core.Stack {
         var submitLambda = this.createSubmitFunction();
         var getStatusLambda = this.createStatusFunction();
 
-        var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Job", {
+        var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Validation Job", {
             lambdaFunction: submitLambda,
             // Lambda's result is in the attribute `Payload`
             outputPath: "$.Payload"
         });
 
-        var waitX = new StepFunctions.Wait(this, "Wait X Seconds", {
+        var waitX = new StepFunctions.Wait(this, "Validate Trade", {
             time: StepFunctions.WaitTime.secondsPath("$.waitSeconds")
         });
 
-        var getStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Job Status", {
+        var getStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Validation Status", {
             lambdaFunction: getStatusLambda,
             // Pass just the field named "guid" into the Lambda, put the
             // Lambda's result in a field called "status" in the response
@@ -59,7 +59,7 @@ export class WorkflowStackL2 extends Core.Stack {
             error: "DescribeJob returned FAILED"
         });
 
-        var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Final Job Status", {                
+        var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Final Validation Status", {                
             lambdaFunction: getStatusLambda,
             // Use "guid" field as input
             inputPath: "$.guid",
@@ -75,6 +75,7 @@ export class WorkflowStackL2 extends Core.Stack {
             stateMachineName: this.metaData.PREFIX+"trade-stm"
         });
         Core.Tags.of(stateMachine).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm");
+        Core.Tags.of(stateMachine.role).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm-role");
     }
     
     private buildAPIRole(): IAM.IRole {
