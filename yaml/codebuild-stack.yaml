@@ -5,11 +5,34 @@ Resources:
     Properties:
         BucketName: 'iac-demo-build-bucket-s3'
         AccessControl: Private
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
         VersioningConfiguration:
           Status: Suspended
         Tags:
           - Key: Name
             Value: 'iac-demo-build-bucket-s3'
+  BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: S3BuildBucketPolicy
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal:
+                AWS:
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/iac-demo-web-role'
+                  - !GetAtt CodeDeployServiceRole.Arn
+                  - !GetAtt CodePipelineServiceRole.Arn
+                  - !GetAtt CodeBuildProjectServiceRole.Arn
+              Action: 
+                - s3:*
+              Resource: !GetAtt S3BuildBucket.Arn
+        Bucket: !Ref S3BuildBucket
   CBProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
@@ -17,7 +40,7 @@ Resources:
       Description: iac-demo-codebuild-project
       Artifacts:
         Type: 'CODEPIPELINE'
-      ServiceRole: 'arn:aws:iam::299199322523:role/iac-demo-code-build-project-service-role'
+      ServiceRole: !Ref CodeBuildProjectServiceRole
       Environment: 
         Image: 'aws/codebuild/amazonlinux2-x86_64-standard:3.0'
         ComputeType: BUILD_GENERAL1_SMALL
@@ -28,7 +51,7 @@ Resources:
     Type: AWS::CodePipeline::Pipeline 
     Properties: 
       Name: 'iac-demo-pipeline'
-      RoleArn: arn:aws:iam::299199322523:role/service-role/tomcat-web-pipeline-role
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
       ArtifactStore: 
         Type: S3
         Location: !Ref S3BuildBucket
@@ -44,7 +67,7 @@ Resources:
               OutputArtifacts:
                   -  Name: Source
               Configuration:
-                ConnectionArn: arn:aws:codestar-connections:eu-central-1:299199322523:connection/a7d89539-29f7-4530-b191-92282b663b27
+                ConnectionArn: !Sub 'arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/a7d89539-29f7-4530-b191-92282b663b27'
                 FullRepositoryId: "sundgaard-aws/simple-java-bootstrap-app"
                 BranchName: main
                 OutputArtifactFormat: CODE_ZIP
@@ -86,13 +109,6 @@ Resources:
     Properties: 
       DeploymentGroupName: "iac-demo-app-dg"
       ApplicationName: "iac-demo-app"
-      Ec2TagFilters: 
-        - Key: "Name"
-          Value: "iac-demo-web-ec2"
-          Type: "KEY_AND_VALUE"
-        - Key: "Name"
-          Value: "iac-demo-web-asg"
-          Type: "KEY_AND_VALUE"
       ServiceRoleArn: !GetAtt CodeDeployServiceRole.Arn
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
@@ -107,4 +123,67 @@ Resources:
             Action:
               - "sts:AssumeRole"
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"        
+        - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"       
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 'iac-demo-pipeline-service-role'
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: 
+              - "sts:AssumeRole"
+            Principal:
+              Service: "codepipeline.amazonaws.com"
+      Policies:
+        - PolicyName: CodePipelineBasePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - s3:*
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - logs:*
+                  - ec2:*
+                  - ssm:*
+                  - lambda:*
+                  - cloudformation:*
+                  - codecommit:*
+                  - codedeploy:*
+                  - cloudwatch:*
+                  - codestar-connections:*
+                Resource: '*'
+  CodeBuildProjectServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: 'iac-demo-code-build-project-service-role2'
+        Path: /
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action: 
+                - "sts:AssumeRole"
+              Principal:
+                Service: "codebuild.amazonaws.com"
+        Policies:
+          - PolicyName: CodeBuildProjectServiceRoleBasePolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - iam:PassRole
+                    - s3:*
+                    - logs:*
+                    - ssm:*
+                    - lambda:*
+                    - cloudformation:*
+                    - codebuild:*
+                    - codecommit:*
+                    - cloudwatch:*
+                    - codestar-connections:*
+                  Resource: '*'                

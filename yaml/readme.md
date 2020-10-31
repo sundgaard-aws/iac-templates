@@ -29,3 +29,4 @@ https://github.com/bitwalker/distillery-aws-example/blob/master/templates/pipeli
 https://github.com/symphoniacloud/github-codepipeline
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html#aws-resource-codedeploy-deploymentgroup--examples
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-codedeploy-deploymentgroup.html
+https://aws.amazon.com/blogs/devops/building-a-ci-cd-pipeline-for-multi-region-deployment-with-aws-codepipeline/
