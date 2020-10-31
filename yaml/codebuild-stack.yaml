@@ -33,6 +33,14 @@ Resources:
                 - s3:*
               Resource: !GetAtt S3BuildBucket.Arn
         Bucket: !Ref S3BuildBucket
+  CodeStarGitHubConnection:
+    Type: 'AWS::CodeStarConnections::Connection'
+    Properties:
+      ConnectionName: 'iac-demo-cs-github-connection'
+      ProviderType: GitHub
+      Tags:
+        - Key: Name
+          Value: 'iac-demo-cs-github-connection'        
   CBProject:
     Type: 'AWS::CodeBuild::Project'
     Properties:
