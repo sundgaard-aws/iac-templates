@@ -75,7 +75,7 @@ Resources:
               OutputArtifacts:
                   -  Name: Source
               Configuration:
-                ConnectionArn: !Sub 'arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/a7d89539-29f7-4530-b191-92282b663b27'
+                ConnectionArn: !GetAtt CodeStarGitHubConnection.Arn
                 FullRepositoryId: "sundgaard-aws/simple-java-bootstrap-app"
                 BranchName: main
                 OutputArtifactFormat: CODE_ZIP
