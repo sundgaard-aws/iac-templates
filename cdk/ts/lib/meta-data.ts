@@ -21,6 +21,7 @@ export class MetaData {
     WebSecurityGroup: EC2.CfnSecurityGroup;
     AutoScalingGroup: ASC.AutoScalingGroup;
     UseDynamicAutoScalingGroupName: boolean = false;
+    AttachAutoScalingToDeploymentGroup: boolean = false;
     constructor() {
     }
     
