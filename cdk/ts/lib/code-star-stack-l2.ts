@@ -24,8 +24,9 @@ export class CodeStarStackL2 extends Core.Stack {
         var cfnPipelineStack = new INC.CfnInclude(this, 'Pipeline', {
             templateFile: '../../yaml/codebuild-stack.yaml'
         });
-        var deploymentGroup = cfnPipelineStack.getResource("CodeDeployDeploymentGroup") as unknown as CD.CfnDeploymentGroup;
-        console.log("dgName=" + deploymentGroup.deploymentGroupName);
+        //var deploymentGroup = cfnPipelineStack.getResource("CodeDeployDeploymentGroup") as unknown as CD.CfnDeploymentGroup;
+        //deploymentGroup.autoScalingGroups = [this.metaData.AutoScalingGroup.autoScalingGroupName];
+        //console.log("dgName=" + deploymentGroup.deploymentGroupName);
     }
 
     // https://docs.aws.amazon.com/cdk/api/latest/docs/aws-codepipeline-actions-readme.html

@@ -22,6 +22,7 @@ export class ClassicWebStackL2 extends Core.Stack {
         
         var lbSecurityGroup = this.buildLoadBalancerSecurityGroup(metaData);
         var autoScalingGroup = this.createAutoScalingGroup(metaData, lbSecurityGroup);
+        metaData.AutoScalingGroup = autoScalingGroup;
         this.createLoadBalancer(metaData, lbSecurityGroup, autoScalingGroup);
         //this.createAutoScalingGroupL2(vpcRef, vpc);
     }
@@ -83,7 +84,10 @@ export class ClassicWebStackL2 extends Core.Stack {
         
         var userData = EC2.UserData.custom(this.buildJavaEnabledServer());
         // AutoScaling groups can't be updated if the name persists, so we wan't a dynamic name but with a consistent prefix
-        var asgName = metaData.PREFIX+"web-asg-"+UUID.v4();
+        
+        var asgName = metaData.PREFIX+"web-asg";
+        if(metaData.UseDynamicAutoScalingGroupName)
+            asgName = metaData.PREFIX+"web-asg-"+UUID.v4();
 
         var asg = new ASC.AutoScalingGroup(this, metaData.PREFIX+"web-asg", {
             machineImage: amznLinux, 
@@ -98,7 +102,8 @@ export class ClassicWebStackL2 extends Core.Stack {
             maxCapacity: 4,
             minCapacity:0,
             autoScalingGroupName: asgName,
-            userData: userData
+            userData: userData,
+            healthCheck: ASC.HealthCheck.elb({grace: Core.Duration.seconds(120)})
         });
 
         Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"web-asg");

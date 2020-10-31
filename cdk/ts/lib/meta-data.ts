@@ -19,6 +19,8 @@ export class MetaData {
     PrivateSubnets: EC2.CfnSubnet[];
     LBSecurityGroup: EC2.CfnSecurityGroup;
     WebSecurityGroup: EC2.CfnSecurityGroup;
+    AutoScalingGroup: ASC.AutoScalingGroup;
+    UseDynamicAutoScalingGroupName: boolean = false;
     constructor() {
     }
     
