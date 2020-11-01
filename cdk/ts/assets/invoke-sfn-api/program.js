@@ -16,31 +16,27 @@ function Program() {
     };
     
     var startWorkflow = function(event) {
-        //var {DynamoDB} from 'aws-sdk' as dd;
         // TODO Replace region and account
         var params = {
             stateMachineArn: "arn:aws:states:eu-central-1:299199322523:stateMachine:iac-demo-trade-stm",
-            input: JSON.stringify({message: "test"})
+            input: JSON.stringify(event)
         }
         
-        //var AWS = require("aws-sdk");
-        //AWS.StepFunctions.
-        //var stepfunctions = new AWS.StepFunctions();
         var stepfunctions = new AWS.StepFunctions();
-        console.log("starting workflow...");
-        //var test =  stepfunctions.startExecution(params);
+        console.log("calling start workflow execution...");
         
-        stepfunctions.startExecution(params, function (err, data) {
-            console.log("workflow execution started...");
+        var stepFunctionsHandle = stepfunctions.startExecution(params, function (err, data) {
+            console.log("inside start execution, waiting for outcome...");
             if (err) {
-                //throw new Error(err);
-                //console.error('err while executing step function');
+                console.error('An error occured while executing the step function');
                 console.log(err);
-            } else {
-                console.log('successfully executed step function');
+            } 
+            else {
+                console.log('Successfully executed step function');
             }
         });
-        console.log("workflow started...");
+        
+        console.log("At the end of start workflow.");
     }    
    
     var reply = function(event) {
