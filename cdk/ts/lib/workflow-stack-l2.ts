@@ -85,6 +85,7 @@ export class WorkflowStackL2 extends Core.Stack {
             assumedBy: new IAM.ServicePrincipal("lambda.amazonaws.com"),
             managedPolicies: [
                 IAM.ManagedPolicy.fromAwsManagedPolicyName("AWSStepFunctionsFullAccess"),
+                IAM.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMFullAccess"),
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaSQSQueueExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"),
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaBasicExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"),
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaVPCAccessExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole")

@@ -22,7 +22,7 @@ export class DatabaseStackL2 extends Core.Stack {
             credentials: RDS.Credentials.fromUsername("superman"), // Optional - will default to admin
             instanceProps: {
                 vpc: this.metaData.VPC,
-                instanceType: EC2.InstanceType.of(EC2.InstanceClass.BURSTABLE3, EC2.InstanceSize.MICRO),
+                instanceType: EC2.InstanceType.of(EC2.InstanceClass.BURSTABLE3, EC2.InstanceSize.SMALL),
                 vpcSubnets: {
                     subnetType: EC2.SubnetType.PRIVATE,
                 }

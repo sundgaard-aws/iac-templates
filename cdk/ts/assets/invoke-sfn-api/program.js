@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const mysql = require('mysql');
 //const {DynamoDB} = require("aws-sdk");
 const { getuid } = require("process");
 //import * as sfn from '@aws-cdk/aws-stepfunctions';
@@ -12,6 +13,7 @@ function Program() {
     this.main = function(event) {
         //validateToken(event);
         startWorkflow(event);
+        writeToDB(event);
         return reply(event);
     };
     
@@ -37,7 +39,37 @@ function Program() {
         });
         
         console.log("At the end of start workflow.");
-    }    
+    };
+    
+    var writeToDB = function(event) {
+        console.log("region=" + process.env.AWS_REGION);
+        var ssm = new AWS.SSM({region: process.env.AWS_REGION});
+         // Fetches a parameter called REPO_NAME from SSM parameter store.
+    // Requires a policy for SSM:GetParameter on the parameter being read.
+        var ssmParams = { Name: 'github-pat', WithDecryption: false };
+        ssm.getParameter(ssmParams, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else console.log("github-pat=" + data); // successful response
+        });
+    
+        /*var connection = mysql.createConnection({
+          host     : process.env.RDS_HOSTNAME,
+          user     : process.env.RDS_USERNAME,
+          password : process.env.RDS_PASSWORD,
+          port     : process.env.RDS_PORT
+        });
+        
+        connection.connect(function(err) {
+          if (err) {
+            console.error('Database connection failed: ' + err.stack);
+            return;
+          }
+        
+          console.log('Connected to database.');
+        });
+        
+        connection.end();*/
+    };
    
     var reply = function(event) {
         var allowedHeaders = "*";
