@@ -45,35 +45,46 @@ function Program() {
         });
     };
     
+    // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
     var writeToDB = function(event) {
-        // Fetches a parameter called REPO_NAME from SSM parameter store.
-        // Requires a policy for SSM:GetParameter on the parameter being read.
-        //var rdsSecretArnParam = getSSMParameter("iac-demo-rds-secret-arn");
         getSSMParameter("iac-demo-rds-secret-arn", function(rdsSecretArnParam) {
             console.log("secretArn="+rdsSecretArnParam.Value);
             getSecret(rdsSecretArnParam.Value, function(secret) {
                 console.log("host="+secret.host);
-                var connection = mysql.createConnection({
+                var conn = mysql.createConnection({
                   host     : secret.host,
                   user     : secret.username,
                   password : secret.password,
-                  port     : secret.port
+                  port     : secret.port,
+                  database : secret.dbname
                 });    
                 
-                connection.connect(function(err) {
-                  if (err) {
-                    //console.error('Database connection failed: ' + err.stack);
-                    throw err;
-                  }
-                
+                conn.connect(function(err) {
+                  if (err) { throw err; }
                   console.log('Connected to database.');
+                  createTableIfNotExists(conn);
+                  insertTrades(conn);
+                  conn.end();
                 });
-                
-                connection.end();
             });
         });
-        
-        
+    };
+    
+    var createTableIfNotExists = function(conn) {
+        conn.query("CREATE TABLE trade as (trade_id VARCHAR(255),user_id VARCHAR(255),trade_isin VARCHAR(20),trade_amount VARCHAR(100),quote VARCHAR(30),trade_date VARCHAR(40))", function (err, result, fields) {
+            if (err) throw err;
+            console.log(result);
+        });  
+    };    
+    
+    var insertTrades = function(conn) {
+        var records = [
+            ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
+        ];
+        conn.query("INSERT INTO trade (trade_id,user_id,trade_isin,trade_amount,quote,trade_date) VALUES ?", [records], function (err, result, fields) {
+            if (err) throw err;
+            console.log(result);
+        });  
     };
     
     var getSSMParameter = function(parameterName, callback) {

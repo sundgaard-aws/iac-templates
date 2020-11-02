@@ -8,11 +8,13 @@ const NAME = "Name";
 
 export class NetworkStackL2 extends Core.Stack {
     public Vpc:EC2.IVpc;
+    private metaData: MetaData;
 
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
-        
+        this.metaData = metaData;
         this.createVPC();
+        this.createAPISecurityGroup();
     }
     
     private createVPC():EC2.IVpc {
@@ -25,6 +27,7 @@ export class NetworkStackL2 extends Core.Stack {
             maxAzs: 2
         });
         this.Vpc = vpc;
+        this.metaData.VPC = vpc;
         
         var publicNacl = this.createPublicNacl(vpc);
         vpc.publicSubnets.forEach( subnet => { subnet.associateNetworkAcl(PREFIX+"public-nacl-assoc", publicNacl) } );
@@ -98,7 +101,21 @@ export class NetworkStackL2 extends Core.Stack {
         });
         Core.Tags.of(privateNacl).add(NAME, PREFIX+"private-nacl");
         return privateNacl;
-    }    
+    }
+    
+    private createAPISecurityGroup() {
+        if(this.metaData.APISecurityGroup) throw new Error("API SECGROUP already exists!");
+        var postFix = "lambda-api-new-sg";
+        var securityGroup = new EC2.SecurityGroup(this, this.metaData.PREFIX+postFix, {
+            vpc: this.metaData.VPC,
+            securityGroupName: this.metaData.PREFIX+postFix,
+            description: this.metaData.PREFIX+postFix,
+            allowAllOutbound: true
+        });
+        
+        Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
+        this.metaData.APISecurityGroup = securityGroup;
+    } 
     
     private tagVPCResources(vpc: EC2.Vpc) {
         Core.Tags.of(vpc).add(NAME, PREFIX+"vpc");

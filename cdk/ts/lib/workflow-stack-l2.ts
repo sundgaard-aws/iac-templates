@@ -108,7 +108,7 @@ export class WorkflowStackL2 extends Core.Stack {
     private createLambdaFunction(name:string, handlerMethod:string, assetPath:string, vpc:EC2.IVpc):Lambda.Function {
         var codeFromLocalZip = Lambda.Code.fromAsset(assetPath);
         var lambdaFunction = new Lambda.Function(this, this.metaData.PREFIX+name, { 
-            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime, memorySize: 256, timeout: Core.Duration.seconds(20), role: this.apiRole
+            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime, memorySize: 256, timeout: Core.Duration.seconds(20), role: this.apiRole, securityGroups: [this.metaData.APISecurityGroup]
         });
         Core.Tags.of(lambdaFunction).add(this.metaData.NAME, this.metaData.PREFIX+name);
         return lambdaFunction;

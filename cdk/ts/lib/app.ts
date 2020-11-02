@@ -16,9 +16,7 @@ var props = {env: {account: process.env["CDK_DEFAULT_ACCOUNT"], region: process.
 var metaData = new MetaData();
 metaData.AttachAutoScalingToDeploymentGroup = true;
 
-var networkStackL2 = new NetworkStackL2(app, metaData.PREFIX+"network-stack", metaData, props);
-metaData.VPC = networkStackL2.Vpc;
-
+new NetworkStackL2(app, metaData.PREFIX+"network-stack", metaData, props);
 new DatabaseStackL2(app, metaData.PREFIX+"database-stack", metaData, props);
 new ClassicWebStackL2(app, metaData.PREFIX+"web-stack", metaData, props);
 new WorkflowStackL2(app, metaData.PREFIX+"workflow-stack", metaData, props);
