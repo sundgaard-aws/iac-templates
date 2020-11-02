@@ -45,7 +45,6 @@ function Program() {
         });
     };
     
-    // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
     var writeToDB = function(event) {
         getSSMParameter("iac-demo-rds-secret-arn", function(rdsSecretArnParam) {
             console.log("secretArn="+rdsSecretArnParam.Value);
@@ -62,21 +61,35 @@ function Program() {
                 conn.connect(function(err) {
                   if (err) { throw err; }
                   console.log('Connected to database.');
-                  createTableIfNotExists(conn);
-                  insertTrades(conn);
-                  conn.end();
+                  createTableIfNotExists(conn, insertTrades);
                 });
             });
         });
     };
     
-    var createTableIfNotExists = function(conn) {
-        conn.query("CREATE TABLE trade as (trade_id VARCHAR(255),user_id VARCHAR(255),trade_isin VARCHAR(20),trade_amount VARCHAR(100),quote VARCHAR(30),trade_date VARCHAR(40))", function (err, result, fields) {
+    // https://www.w3schools.com/nodejs/nodejs_mysql_create_table.asp
+    // https://stackoverflow.com/questions/8829102/check-if-table-exists-without-using-select-from
+    var createTableIfNotExists = function(conn, callback) {
+        conn.query("SELECT * FROM information_schema.tables WHERE table_name = 'trade' LIMIT 1;", (err, result, fields) => {
             if (err) throw err;
-            console.log(result);
-        });  
+            if(result && result.length > 0) {
+                var row = result[0];
+                console.log("Table [" + row.TABLE_NAME + "] found, no need to recreate.");
+                callback(conn);
+            }
+            else {
+                console.log("Creating table [" + row.TABLE_NAME + "] ...");
+                conn.query("CREATE TABLE trade (trade_id VARCHAR(255), user_id VARCHAR(255), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date VARCHAR(40) )", function (err, result, fields) {
+                    if (err) throw err;
+                    console.log(result);
+                    console.log("Table [" + row.TABLE_NAME + "] created.");
+                    callback(conn);
+                });  
+            }
+        });
     };    
     
+    // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
     var insertTrades = function(conn) {
         var records = [
             ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
@@ -84,7 +97,8 @@ function Program() {
         conn.query("INSERT INTO trade (trade_id,user_id,trade_isin,trade_amount,quote,trade_date) VALUES ?", [records], function (err, result, fields) {
             if (err) throw err;
             console.log(result);
-        });  
+        });
+        conn.end();
     };
     
     var getSSMParameter = function(parameterName, callback) {
