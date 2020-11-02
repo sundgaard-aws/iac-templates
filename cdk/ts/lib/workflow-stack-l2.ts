@@ -37,26 +37,23 @@ export class WorkflowStackL2 extends Core.Stack {
         Core.Tags.of(codeBucket).add(this.metaData.NAME, this.metaData.PREFIX+"lambda-code-bucket");
 
         var submitLambda = this.createSubmitFunction();
-        var getStatusLambda = this.createStatusFunction();
+        var getValidationStatusLambda = this.createStatusFunction();
         var updateStatusLambda = this.createUpdateStatusFunction();
 
-        var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Validation Job", {
+        var submitValidationJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Validation Job", {
             lambdaFunction: submitLambda,
             // Lambda's result is in the attribute `Payload`
-            outputPath: "$.Payload"
+            outputPath: "$.Payload.refinedInput"
         });
 
-        var waitX = new StepFunctions.Wait(this, "Validate Trade", {
+        var simulatedValidation = new StepFunctions.Wait(this, "Validate Trade", {
             time: StepFunctions.WaitTime.secondsPath("$.waitSeconds")
         });
 
-        var getStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Validation Status", {
-            lambdaFunction: getStatusLambda,
-            // Pass just the field named "guid" into the Lambda, put the
-            // Lambda's result in a field called "status" in the response
-            //inputPath: "$.guid",
+        var getValidationStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Validation Status", {
+            lambdaFunction: getValidationStatusLambda,
             inputPath: "$",
-            outputPath: "$.Payload"
+            outputPath: "$.Payload.refinedInput"
         });
 
         var jobFailed = new StepFunctions.Fail(this, "Job Failed", {
@@ -67,12 +64,15 @@ export class WorkflowStackL2 extends Core.Stack {
         var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Update Validation Status", {                
             lambdaFunction: updateStatusLambda,
             // Use "guid" field as input
-            inputPath: "$.guid",
-            outputPath: "$.Payload"
+            inputPath: "$",
+            outputPath: "$.Payload.refinedInput"
         });
 
-        var definition = submitJob.next(waitX).next(getStatus).next(new StepFunctions.Choice(this, "Job Complete?").when(StepFunctions.Condition.stringEquals("$.status", "FAILED"), jobFailed)
-        .when(StepFunctions.Condition.stringEquals("$.status", "SUCCEEDED"), finalStatus).otherwise(waitX));
+        var definition = submitValidationJob
+        .next(simulatedValidation)
+        .next(getValidationStatus)
+        .next(new StepFunctions.Choice(this, "Validation Complete?").when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "INVALID"), jobFailed)
+        .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "VALID"), finalStatus).otherwise(simulatedValidation));
 
         var stateMachine = new StepFunctions.StateMachine(this, "StateMachine", {
             definition: definition,

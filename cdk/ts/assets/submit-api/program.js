@@ -1,3 +1,4 @@
+// submit-validation-api
 function Program() {
     this.main = function(event) {
         //validateToken(event);        
@@ -9,10 +10,6 @@ function Program() {
         var allowedOrigin = "*";
         //var allowedOrigin = "https://octa-trading.sundgaar.people.aws.dev";
         
-        var reply = {
-          userInputDataJson: event
-        };
-        
         const response = {
             statusCode: 200,
             headers: {
@@ -22,8 +19,11 @@ function Program() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(reply),
-            waitSeconds: "5", // Actual input to state machine
-            guid: "239847329487"
+            
+            refinedInput: { 
+                waitSeconds: "5", // Actual input to state machine
+                trade: event.trade
+            }
         };
         return response;  
     };
