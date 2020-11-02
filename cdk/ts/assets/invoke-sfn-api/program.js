@@ -52,27 +52,28 @@ function Program() {
         getSSMParameter("iac-demo-rds-secret-arn", function(rdsSecretArnParam) {
             console.log("secretArn="+rdsSecretArnParam.Value);
             getSecret(rdsSecretArnParam.Value, function(secret) {
-                console.log("secretObj="+JSON.stringify(secret));
+                console.log("host="+secret.host);
                 var connection = mysql.createConnection({
                   host     : secret.host,
                   user     : secret.username,
                   password : secret.password,
                   port     : secret.port
                 });    
+                
+                connection.connect(function(err) {
+                  if (err) {
+                    //console.error('Database connection failed: ' + err.stack);
+                    throw err;
+                  }
+                
+                  console.log('Connected to database.');
+                });
+                
+                connection.end();
             });
         });
         
-        /*
-        connection.connect(function(err) {
-          if (err) {
-            console.error('Database connection failed: ' + err.stack);
-            return;
-          }
         
-          console.log('Connected to database.');
-        });
-        
-        connection.end();*/
     };
     
     var getSSMParameter = function(parameterName, callback) {
@@ -122,8 +123,8 @@ function Program() {
             else {
                 // Decrypts secret using the associated KMS CMK.
                 // Depending on whether the secret is a string or binary, one of these fields will be populated.
-                if ('SecretString' in data) {
-                    secret = data.SecretString;
+                if (data && data.SecretString) {
+                    secret = JSON.parse(data.SecretString);
                     callback(secret);
                 } else {
                     let buff = new Buffer(data.SecretBinary, 'base64');
