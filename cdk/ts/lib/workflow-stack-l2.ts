@@ -38,6 +38,7 @@ export class WorkflowStackL2 extends Core.Stack {
 
         var submitLambda = this.createSubmitFunction();
         var getStatusLambda = this.createStatusFunction();
+        var updateStatusLambda = this.createUpdateStatusFunction();
 
         var submitJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Validation Job", {
             lambdaFunction: submitLambda,
@@ -53,7 +54,8 @@ export class WorkflowStackL2 extends Core.Stack {
             lambdaFunction: getStatusLambda,
             // Pass just the field named "guid" into the Lambda, put the
             // Lambda's result in a field called "status" in the response
-            inputPath: "$.guid",
+            //inputPath: "$.guid",
+            inputPath: "$",
             outputPath: "$.Payload"
         });
 
@@ -62,8 +64,8 @@ export class WorkflowStackL2 extends Core.Stack {
             error: "DescribeJob returned FAILED"
         });
 
-        var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Final Validation Status", {                
-            lambdaFunction: getStatusLambda,
+        var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Update Validation Status", {                
+            lambdaFunction: updateStatusLambda,
             // Use "guid" field as input
             inputPath: "$.guid",
             outputPath: "$.Payload"
@@ -122,6 +124,10 @@ export class WorkflowStackL2 extends Core.Stack {
         return this.createLambdaFunction("status-api-lam", "index.mainHandler", "assets/status-api", this.metaData.VPC);
     }
 
+    private createUpdateStatusFunction():Lambda.Function {
+        return this.createLambdaFunction("update-status-api-lam", "index.mainHandler", "assets/update-status-api/", this.metaData.VPC);
+    }
+    
     private createStepFunctionsTrigger(queue:SQS.IQueue) {
         var sfnLambdaTriggerFunction = this.createLambdaFunction("invoke-sfn-api-lam", "index.mainHandler", "assets/invoke-sfn-api/", this.metaData.VPC);
         sfnLambdaTriggerFunction.addEventSource(new LambdaEvents.SqsEventSource(queue, {}));

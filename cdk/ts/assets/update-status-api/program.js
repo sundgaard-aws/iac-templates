@@ -1,18 +1,10 @@
 const AWS = require("aws-sdk");
 const mysql = require('mysql');
-//const {DynamoDB} = require("aws-sdk");
 const { getuid } = require("process");
-//import * as sfn from '@aws-cdk/aws-stepfunctions';
-//const { getHttps } = require('https');
-
-//const {DynamoDB} = require('aws-sdk')
-//const s3 = new AWS.S3();
 
 // https://stackoverflow.com/questions/49907830/aws-lambda-function-times-out-when-i-require-aws-sdk-module/52009185
-// invoke-sfn-api-lam
+// update-status-api-lam
 function Program() {
-    
-    var dropTableFirst = false;
     var finalCallback;
     
     this.main = function(event, context, callback) {
@@ -34,38 +26,6 @@ function Program() {
         }  
     };
     
-    var startWorkflow = function(event, conn, trade) {
-        
-        getSSMParameter("iac-demo-state-machine-arn", function(stateMachineArnParam) {
-            console.log("iac-demo-state-machine-arn="+stateMachineArnParam.Value);
-            var params = {
-                stateMachineArn: stateMachineArnParam.Value,
-                input: JSON.stringify( { trade: trade } )
-                //input: JSON.stringify(event)
-            }
-            
-            var stepfunctions = new AWS.StepFunctions();
-            console.log("calling start workflow execution...");
-            
-            var stepFunctionsHandle = stepfunctions.startExecution(params, function (err, data) {
-                console.log("Inside start execution, waiting for outcome...");
-                if (err) {
-                    console.error('An error occured while executing the step function');
-                    console.log(err);
-                    updateTradeStatus(event, conn, "VALIDATION_START_FAILED", trade.TradeId);
-                    throw err;
-                } 
-                else {
-                    console.log("stateMachineData="+JSON.stringify(data));
-                    updateTradeStatus(event, conn, "VALIDATION_STARTED", trade.TradeId);
-                    console.log("Successfully executed step function");
-                }
-            });
-            
-            console.log("At the end of start workflow.");            
-        });
-    };
-    
     var writeToDB = function(event) {
         getSSMParameter("iac-demo-rds-secret-arn", function(rdsSecretArnParam) {
             console.log("secretArn="+rdsSecretArnParam.Value);
@@ -82,77 +42,16 @@ function Program() {
                 conn.connect(function(err) {
                   if (err) { throw err; }
                   console.log('Connected to database.');
-                  dropTable(event, conn);
+                  updateTradeStatus(event, conn, event);
                 });
             });
         });
     };
     
-    var dropTable = function(event, conn) {
-        if(dropTableFirst) {
-            conn.query("DROP TABLE trade;", (err, result, fields) => {
-                if (err) throw err;
-                console.log("Dropping table trade...");
-                createTableIfNotExists(event, conn);
-                console.log("Table trade dropped.");
-            });
-        }
-        else createTableIfNotExists(event, conn);
-    };    
-    
-    // https://www.w3schools.com/nodejs/nodejs_mysql_create_table.asp
-    // https://stackoverflow.com/questions/8829102/check-if-table-exists-without-using-select-from
-    var createTableIfNotExists = function(event, conn) {
-        conn.query("SELECT * FROM information_schema.tables WHERE table_name = 'trade' LIMIT 1;", (err, result, fields) => {
-            if (err) throw err;
-            if(result && result.length > 0) {
-                var row = result[0];
-                console.log("Table [" + row.TABLE_NAME + "] found, no need to recreate.");
-                insertTrades(event, conn);
-            }
-            else {
-                console.log("Creating table [trade] ...");
-                conn.query("CREATE TABLE trade (trade_id VARCHAR(255), user_id VARCHAR(255), trade_status VARCHAR(40), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date VARCHAR(40) )", function (err, result, fields) {
-                    if (err) throw err;
-                    console.log(result);
-                    console.log("Table [trade] created.");
-                    insertTrades(event, conn);
-                });  
-            }
-        });
-    };    
-    
     // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
-    var insertTrades = function(event, conn) {
-        console.log("Registering new trades in database...");
-        //var records = [ ["100", "User13", "PENDING_VALIDATION", "AMZ", "55", "1700.24", "2020/12/12"]  ];
-        var sqsMessages = event.Records;
-        var trades = new Array();
-        var tradeRows = new Array();
-        var tradeStatus = "PENDING_VALIDATION";
-        var quote = 785.23;
-        for(var i=0; i < sqsMessages.length; i++) {
-            var sqsMessage = sqsMessages[i];
-            var trade = JSON.parse(sqsMessage.body);
-            console.log("messageId="+sqsMessage.messageId);
-            console.log("tradeId="+trade.TradeId);
-            trades.push(trade);
-            tradeRows.push([ trade.TradeId, trade.UserId, tradeStatus, trade.TradeISIN, trade.Amount, quote.toString(), trade.EventTime ]);
-        }
-        
-        conn.query("INSERT INTO trade (trade_id,user_id,trade_status,trade_isin,trade_amount,quote,trade_date) VALUES ?", [tradeRows], function (err, result, fields) {
-            if (err) throw err;
-            console.log(result);
-            // Start a validation workflow per trade as we may have more than one
-            for(var i=0; i < trades.length; i++) {
-                var trade = trades[i];
-                startWorkflow(event, conn, trade);
-            }
-        });
-    };
-    
-    // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
-    var updateTradeStatus = function(event, conn, validationStatus, tradeId) {
+    var updateTradeStatus = function(event, conn, event) {
+        var validationStatus = "VALID";
+        var tradeId = "100";
         console.log("Updating trade validation status...");
         /*var records = [
             ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
