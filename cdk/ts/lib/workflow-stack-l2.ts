@@ -17,6 +17,7 @@ export class WorkflowStackL2 extends Core.Stack {
     private runtime:Lambda.Runtime = Lambda.Runtime.NODEJS_12_X;
     private metaData:MetaData;
     private apiRole:IAM.IRole;
+    private ssmHelper = new SSMHelper();
 
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
@@ -78,6 +79,7 @@ export class WorkflowStackL2 extends Core.Stack {
         });
         Core.Tags.of(stateMachine).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm");
         Core.Tags.of(stateMachine.role).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm-role");
+        this.ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"state-machine-arn", stateMachine.stateMachineArn, SSM.ParameterType.STRING);
     }
     
     private buildAPIRole(): IAM.IRole {
@@ -91,8 +93,14 @@ export class WorkflowStackL2 extends Core.Stack {
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaSQSQueueExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"),
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaBasicExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"),
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AWSLambdaVPCAccessExecutionRole", "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole")
-            ]
+            ],
         });
+        role.addToPolicy(new IAM.PolicyStatement({
+          effect: IAM.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["secretsmanager:GetSecretValue"]
+        }));
+
         Core.Tags.of(role).add(this.metaData.NAME, this.metaData.PREFIX+"api-role");
         return role;
     }    
@@ -130,8 +138,7 @@ export class WorkflowStackL2 extends Core.Stack {
             queueName: this.metaData.PREFIX+"sqs", visibilityTimeout: Core.Duration.seconds(4), retentionPeriod: Core.Duration.days(14), deadLetterQueue: {queue: deadLetterqueue, maxReceiveCount: 5}
         });
         Core.Tags.of(queue).add(this.metaData.NAME, this.metaData.PREFIX+"sqs");
-        var ssmHelper = new SSMHelper();
-        ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"sqs-queue-url", queue.queueUrl, SSM.ParameterType.STRING);
+        this.ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"sqs-queue-url", queue.queueUrl, SSM.ParameterType.STRING);
         return queue;
     }    
 }
