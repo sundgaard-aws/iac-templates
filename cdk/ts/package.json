@@ -34,6 +34,8 @@
     "@aws-cdk/aws-rds": "^1.71.0",
     "@aws-cdk/aws-s3": "^1.71.0",
     "@aws-cdk/aws-sqs": "^1.71.0",
+    "@aws-cdk/aws-ssm": "^1.71.0",
+    "@aws-cdk/aws-secretsmanager": "^1.71.0",
     "@aws-cdk/aws-stepfunctions": "^1.71.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.71.0",
     "@aws-cdk/cloudformation-include": "^1.71.0",

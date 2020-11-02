@@ -10,6 +10,8 @@ import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
 import { IVpc } from '@aws-cdk/aws-ec2';
 import { MetaData } from './meta-data';
 import { CfnFunction } from '@aws-cdk/aws-lambda';
+import * as SSM from '@aws-cdk/aws-ssm';
+import { SSMHelper } from './ssm-helper';
 
 export class WorkflowStackL2 extends Core.Stack {
     private runtime:Lambda.Runtime = Lambda.Runtime.NODEJS_12_X;
@@ -128,6 +130,8 @@ export class WorkflowStackL2 extends Core.Stack {
             queueName: this.metaData.PREFIX+"sqs", visibilityTimeout: Core.Duration.seconds(4), retentionPeriod: Core.Duration.days(14), deadLetterQueue: {queue: deadLetterqueue, maxReceiveCount: 5}
         });
         Core.Tags.of(queue).add(this.metaData.NAME, this.metaData.PREFIX+"sqs");
+        var ssmHelper = new SSMHelper();
+        ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"sqs-queue-url", queue.queueUrl, SSM.ParameterType.STRING);
         return queue;
     }    
 }
