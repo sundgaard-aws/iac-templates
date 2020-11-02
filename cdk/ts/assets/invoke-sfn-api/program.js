@@ -10,14 +10,17 @@ const { getuid } = require("process");
 
 // https://stackoverflow.com/questions/49907830/aws-lambda-function-times-out-when-i-require-aws-sdk-module/52009185
 function Program() {
-    this.main = function(event) {
+    
+    var dropTableFirst = false;
+    var finalCallback;
+    
+    this.main = function(event, context, callback) {
         console.log("region=" + process.env.AWS_REGION);
-        startWorkflow(event);
+        finalCallback = callback;
         writeToDB(event);
-        return reply(event);
     };
     
-    var startWorkflow = function(event) {
+    var startWorkflow = function(event, conn) {
         
         getSSMParameter("iac-demo-state-machine-arn", function(stateMachineArnParam) {
             console.log("iac-demo-state-machine-arn="+stateMachineArnParam.Value);
@@ -30,14 +33,16 @@ function Program() {
             console.log("calling start workflow execution...");
             
             var stepFunctionsHandle = stepfunctions.startExecution(params, function (err, data) {
-                console.log("inside start execution, waiting for outcome...");
+                console.log("Inside start execution, waiting for outcome...");
                 if (err) {
                     console.error('An error occured while executing the step function');
                     console.log(err);
+                    updateTradeStatus(event, conn, "INVALID", "100");
                     throw err;
                 } 
                 else {
-                    console.log('Successfully executed step function');
+                    updateTradeStatus(event, conn, "VALID", "100");
+                    console.log("Successfully executed step function");
                 }
             });
             
@@ -61,45 +66,73 @@ function Program() {
                 conn.connect(function(err) {
                   if (err) { throw err; }
                   console.log('Connected to database.');
-                  createTableIfNotExists(conn, insertTrades);
+                  dropTable(event, conn);
                 });
             });
         });
     };
     
+    var dropTable = function(event, conn) {
+        if(dropTableFirst) {
+            conn.query("DROP TABLE trade;", (err, result, fields) => {
+                if (err) throw err;
+                console.log("Dropping table trade...");
+                createTableIfNotExists(event, conn);
+                console.log("Table trade dropped.");
+            });
+        }
+        else createTableIfNotExists(event, conn);
+    };    
+    
     // https://www.w3schools.com/nodejs/nodejs_mysql_create_table.asp
     // https://stackoverflow.com/questions/8829102/check-if-table-exists-without-using-select-from
-    var createTableIfNotExists = function(conn, callback) {
+    var createTableIfNotExists = function(event, conn) {
         conn.query("SELECT * FROM information_schema.tables WHERE table_name = 'trade' LIMIT 1;", (err, result, fields) => {
             if (err) throw err;
             if(result && result.length > 0) {
                 var row = result[0];
                 console.log("Table [" + row.TABLE_NAME + "] found, no need to recreate.");
-                callback(conn);
+                insertTrades(event, conn);
             }
             else {
-                console.log("Creating table [" + row.TABLE_NAME + "] ...");
-                conn.query("CREATE TABLE trade (trade_id VARCHAR(255), user_id VARCHAR(255), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date VARCHAR(40) )", function (err, result, fields) {
+                console.log("Creating table [trade] ...");
+                conn.query("CREATE TABLE trade (trade_id VARCHAR(255), user_id VARCHAR(255), trade_status VARCHAR(40), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date VARCHAR(40) )", function (err, result, fields) {
                     if (err) throw err;
                     console.log(result);
-                    console.log("Table [" + row.TABLE_NAME + "] created.");
-                    callback(conn);
+                    console.log("Table [trade] created.");
+                    insertTrades(event, conn);
                 });  
             }
         });
     };    
     
     // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
-    var insertTrades = function(conn) {
+    var insertTrades = function(event, conn) {
         var records = [
-            ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
+            ["100", "User13", "PENDING_VALIDATION", "AMZ", "55", "1700.24", "2020/12/12"]
         ];
-        conn.query("INSERT INTO trade (trade_id,user_id,trade_isin,trade_amount,quote,trade_date) VALUES ?", [records], function (err, result, fields) {
+        conn.query("INSERT INTO trade (trade_id,user_id,trade_status,trade_isin,trade_amount,quote,trade_date) VALUES ?", [records], function (err, result, fields) {
             if (err) throw err;
             console.log(result);
+            startWorkflow(event, conn);
         });
-        conn.end();
     };
+    
+    // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
+    var updateTradeStatus = function(event, conn, validationStatus, tradeId) {
+        console.log("Updating trade validation status...");
+        /*var records = [
+            ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
+        ];*/
+        conn.query("UPDATE trade SET trade_status = ? WHERE trade_id = ?", [validationStatus,tradeId], function (err, result, fields) {
+            if (err) throw err;
+            console.log(result);
+            console.log("Closing DB connection...");
+            conn.end();
+            console.log("Returning final response from function...");
+            reply(event)
+        });
+    };    
     
     var getSSMParameter = function(parameterName, callback) {
         var ssm = new AWS.SSM({region: process.env.AWS_REGION});
@@ -181,7 +214,8 @@ function Program() {
             guid: "239847329487", // Actual input to state machine
             status: "SUCCEEDED"
         };
-        return response;  
+        finalCallback(null, response, "Done.");
+        //return response;  
     };
 }
 
