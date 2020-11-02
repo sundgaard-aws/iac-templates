@@ -18,8 +18,7 @@ function Program() {
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(reply),
-            
+            body: JSON.stringify({ status: "success"}),
             refinedInput: { 
                 waitSeconds: "5", // Actual input to state machine
                 trade: event.trade

@@ -16,14 +16,6 @@ function Program() {
     
     var printInputEvent = function(event) {
         //console.log("event=" + JSON.stringify(event));
-        var sqsMessages = event.Records;
-        for(var i = 0, len = sqsMessages.length; i < sqsMessages.length; i++) {
-            var sqsMessage = sqsMessages[i];
-            var trade = JSON.parse(sqsMessage.body);
-            console.log("messageId="+sqsMessage.messageId);
-            //console.log("tradeId="+trade.TradeId);
-            console.log("trade="+JSON.stringify(trade));
-        }  
     };
     
     var writeToDB = function(event) {
@@ -50,9 +42,9 @@ function Program() {
     
     // https://www.tutorialkart.com/nodejs/nodejs-mysql-insert-into/
     var updateTradeStatus = function(event, conn, event) {
-        var validationStatus = "VALID";
-        var tradeId = "100";
-        console.log("Updating trade validation status...");
+        var validationStatus = event.trade.TradeStatus; //"VALID";
+        var tradeId = event.trade.TradeId; //"100";
+        console.log("Updating trade validation status for trade [" + event.trade.TradeId + "]...");
         /*var records = [
             ["100", "User13", "AMZ", "55", "1700.24", "2020/12/12"]
         ];*/
@@ -130,10 +122,6 @@ function Program() {
         var allowedOrigin = "*";
         //var allowedOrigin = "https://octa-trading.sundgaar.people.aws.dev";
         
-        var reply = {
-          userInputDataJson: event
-        };
-        
         const response = {
             statusCode: 200,
             headers: {
@@ -142,12 +130,15 @@ function Program() {
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(reply),
-            guid: "239847329487", // Actual input to state machine
-            status: "SUCCEEDED"
+            body: JSON.stringify({ status: "success"}),
+            refinedInput: { 
+                trade: event.trade
+            }            
+            //body: JSON.stringify(reply),
+            //guid: "239847329487", // Actual input to state machine
+            //status: "SUCCEEDED"
         };
         finalCallback(null, response, "Done.");
-        //return response;  
     };
 }
 

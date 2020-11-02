@@ -1,5 +1,6 @@
 const { getuid } = require("process");
 
+//get-validation-status-api
 function Program() {
     this.main = function(event) {
         //validateToken(event);        
@@ -11,6 +12,8 @@ function Program() {
         var allowedOrigin = "*";
         //var allowedOrigin = "https://octa-trading.sundgaar.people.aws.dev";
         
+        var trade = event.trade;
+        trade.TradeStatus = "VALID";
         const response = {
             statusCode: 200,
             headers: {
@@ -19,10 +22,9 @@ function Program() {
                 "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(reply),
-            
+            body: JSON.stringify({ status: "success"}),
             refinedInput: { 
-                trade: event.trade
+                trade: trade
             }
         };
         return response;
