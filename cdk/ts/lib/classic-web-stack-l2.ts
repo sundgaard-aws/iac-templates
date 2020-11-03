@@ -4,6 +4,7 @@ import EC2 = require('@aws-cdk/aws-ec2');
 import IAM = require("@aws-cdk/aws-iam");
 import S3 = require('@aws-cdk/aws-s3');
 import SQS = require('@aws-cdk/aws-sqs');
+import LOGS = require('@aws-cdk/aws-logs');
 import Lambda = require('@aws-cdk/aws-lambda');
 import StepFunctions = require('@aws-cdk/aws-stepfunctions');
 import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
@@ -15,16 +16,32 @@ import { CfnListener, CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elast
 
 export class ClassicWebStackL2 extends Core.Stack {
     private targetGroup: ELBv2.CfnTargetGroup;
+    private metaData: MetaData;
     
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
         super(scope, id, props);
         console.log("region="+props?.env?.region);
         
+        this.metaData = metaData;
         var lbSecurityGroup = this.buildLoadBalancerSecurityGroup(metaData);
+        this.createLogStream();
         var autoScalingGroup = this.createAutoScalingGroup(metaData, lbSecurityGroup);
         metaData.AutoScalingGroup = autoScalingGroup;
         this.createLoadBalancer(metaData, lbSecurityGroup, autoScalingGroup);
         //this.createAutoScalingGroupL2(vpcRef, vpc);
+    }
+    
+    private createLogStream() {
+        const logGroup = new LOGS.LogGroup(this, this.metaData.PREFIX+"web-log-group", {
+            retention: LOGS.RetentionDays.ONE_WEEK,
+            logGroupName: this.metaData.PREFIX+"web-log-group"
+        });
+        var logStream = new LOGS.LogStream(this, this.metaData.PREFIX+"web-log-stream", {
+            logGroup: logGroup,
+            logStreamName: this.metaData.PREFIX+"web-log-stream",
+            removalPolicy: Core.RemovalPolicy.DESTROY
+        });
+        //logGroup.addStream(logStream);
     }
     
     private buildLoadBalancerSecurityGroup(metaData:MetaData): EC2.ISecurityGroup {
