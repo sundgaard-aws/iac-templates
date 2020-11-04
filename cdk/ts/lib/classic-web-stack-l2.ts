@@ -15,7 +15,7 @@ import { MetaData } from './meta-data';
 import { CfnListener, CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export class ClassicWebStackL2 extends Core.Stack {
-    private targetGroup: ELBv2.CfnTargetGroup;
+    //private targetGroup: ELBv2.CfnTargetGroup;
     private metaData: MetaData;
     
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
@@ -23,11 +23,10 @@ export class ClassicWebStackL2 extends Core.Stack {
         console.log("region="+props?.env?.region);
         
         this.metaData = metaData;
-        var lbSecurityGroup = this.buildLoadBalancerSecurityGroup(metaData);
         this.createLogStream();
-        var autoScalingGroup = this.createAutoScalingGroup(metaData, lbSecurityGroup);
+        var autoScalingGroup = this.createAutoScalingGroup(metaData);
         metaData.AutoScalingGroup = autoScalingGroup;
-        this.createLoadBalancer(metaData, lbSecurityGroup, autoScalingGroup);
+        this.createLoadBalancer(metaData, autoScalingGroup);
         //this.createAutoScalingGroupL2(vpcRef, vpc);
     }
     
@@ -36,34 +35,25 @@ export class ClassicWebStackL2 extends Core.Stack {
             retention: LOGS.RetentionDays.ONE_WEEK,
             logGroupName: this.metaData.PREFIX+"web-log-group"
         });
-        var logStream = new LOGS.LogStream(this, this.metaData.PREFIX+"web-log-stream", {
+        new LOGS.LogStream(this, this.metaData.PREFIX+"web-log-stream", {
             logGroup: logGroup,
             logStreamName: this.metaData.PREFIX+"web-log-stream",
             removalPolicy: Core.RemovalPolicy.DESTROY
         });
-        //logGroup.addStream(logStream);
+        new LOGS.LogStream(this, this.metaData.PREFIX+"web-err-stream", {
+            logGroup: logGroup,
+            logStreamName: this.metaData.PREFIX+"web-err-stream",
+            removalPolicy: Core.RemovalPolicy.DESTROY
+        });
     }
     
-    private buildLoadBalancerSecurityGroup(metaData:MetaData): EC2.ISecurityGroup {
-        var securityGroup = new EC2.SecurityGroup(this,metaData.PREFIX+"web-lb-sg", {
-            vpc: metaData.VPC,
-            securityGroupName: metaData.PREFIX+"web-lb-sg",
-            description: metaData.PREFIX+"web-lb-sg",
-            allowAllOutbound: true
-        });
-        
-        securityGroup.addIngressRule(EC2.Peer.anyIpv4(), EC2.Port.tcp(80), "HTTP from anywhere");
-        Core.Tags.of(securityGroup).add(metaData.NAME, metaData.PREFIX+"web-lb-sg");
-        return securityGroup;
-    }    
-    
-    private createLoadBalancer(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup, autoScalingGroup: ASC.AutoScalingGroup) {
+    private createLoadBalancer(metaData: MetaData, autoScalingGroup: ASC.AutoScalingGroup) {
         var alb = new ELBv2.ApplicationLoadBalancer(this, metaData.PREFIX+"web-alb", {
            internetFacing: true,
            loadBalancerName: metaData.PREFIX+"web-alb",
            vpc: metaData.VPC,
            vpcSubnets: { subnetType: EC2.SubnetType.PUBLIC },
-           securityGroup: lbSecurityGroup
+           securityGroup: this.metaData.LBSecurityGroup
         });
         Core.Tags.of(alb).add(metaData.NAME, metaData.PREFIX+"web-alb");
         
@@ -90,7 +80,7 @@ export class ClassicWebStackL2 extends Core.Stack {
         });*/        
     }
     
-    private createAutoScalingGroup(metaData: MetaData, lbSecurityGroup: EC2.ISecurityGroup): ASC.AutoScalingGroup {
+    private createAutoScalingGroup(metaData: MetaData): ASC.AutoScalingGroup {
         const amznLinux = EC2.MachineImage.latestAmazonLinux({
             generation: EC2.AmazonLinuxGeneration.AMAZON_LINUX_2
             /*edition: EC2.AmazonLinuxEdition.MINIMAL,
@@ -110,7 +100,7 @@ export class ClassicWebStackL2 extends Core.Stack {
             machineImage: amznLinux, 
             vpc: metaData.VPC,
             updateType: ASC.UpdateType.REPLACING_UPDATE,
-            securityGroup: this.buildWebSecurityGroup(metaData, lbSecurityGroup),
+            securityGroup: this.metaData.WebSecurityGroup,
             vpcSubnets: { subnets: metaData.VPC.privateSubnets },
             role: this.buildWebRole(metaData),
             instanceType: EC2.InstanceType.of(EC2.InstanceClass.BURSTABLE3, EC2.InstanceSize.MICRO),
@@ -126,24 +116,6 @@ export class ClassicWebStackL2 extends Core.Stack {
         Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"web-asg");
         Core.Tags.of(asg).add(metaData.NAME, metaData.PREFIX+"web-ec2", { includeResourceTypes: [EC2.CfnInstance.CFN_RESOURCE_TYPE_NAME] });
         return asg;
-    }
-    
-    private buildWebSecurityGroup(metaData:MetaData, loadBalancerSecurityGroup:EC2.ISecurityGroup): EC2.ISecurityGroup {
-        var securityGroup = new EC2.SecurityGroup(this,metaData.PREFIX+"web-sg", {
-            vpc: metaData.VPC,
-            securityGroupName: metaData.PREFIX+"web-sg",
-            description: metaData.PREFIX+"web-sg",
-            allowAllOutbound: true
-        });
-        
-        securityGroup.connections.allowFrom(loadBalancerSecurityGroup, EC2.Port.tcp(80));
-        
-        //webSecurityGroup.addIngressRule(EC2.Peer.anyIpv4(), EC2.Port.tcp(22), 'SSH frm anywhere');
-        //securityGroup.addIngressRule(EC2.Peer.prefixList(loadBalancerSecurityGroup.securityGroupId), EC2.Port.tcp(80));
-        //securityGroup.addIngressRule(EC2.Peer.ipv4(metaData.VPC.vpcCidrBlock), EC2.Port.allTraffic(), "HTTP from load balancer");
-        //webSecurityGroup.addIngressRule(EC2.Peer.ipv4('10.0.0.0/24'), EC2.Port.tcp(5439), 'Redshift Ingress2');
-        Core.Tags.of(securityGroup).add(metaData.NAME, metaData.PREFIX+"web-sg");
-        return securityGroup;
     }
     
     private buildWebRole(metaData:MetaData): IAM.IRole {
@@ -163,6 +135,12 @@ export class ClassicWebStackL2 extends Core.Stack {
                 IAM.ManagedPolicy.fromManagedPolicyArn(this, "AmazonEC2RoleforAWSCodeDeploy", "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforAWSCodeDeploy")
             ]
         });
+        webRole.addToPolicy(new IAM.PolicyStatement({
+          effect: IAM.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["logs:DescribeLogStreams", "logs:PutLogEvents", "secretsmanager:GetSecretValue"]
+        }));
+        
         Core.Tags.of(webRole).add(metaData.NAME, metaData.PREFIX+"web-role");
         return webRole;
     }

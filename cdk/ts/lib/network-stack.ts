@@ -146,7 +146,7 @@ export class NetworkStack extends cdk.Stack {
             ]
         });        
         lbSecurityGroup.tags.setTag(NAME, PREFIX + "lb-sg");
-        metaData.LBSecurityGroup = lbSecurityGroup;
+        metaData.LBSecurityGroupL1 = lbSecurityGroup;
 
         var webSecurityGroup = new EC2.CfnSecurityGroup(this, PREFIX+"web-sg", {
             groupName: PREFIX+"web-sg", groupDescription: PREFIX+"web-sg", vpcId: vpc.ref, securityGroupIngress: [
@@ -154,7 +154,7 @@ export class NetworkStack extends cdk.Stack {
             ]
         });
         webSecurityGroup.tags.setTag(NAME, PREFIX + "web-sg");
-        metaData.WebSecurityGroup = webSecurityGroup;
+        metaData.WebSecurityGroupL1 = webSecurityGroup;
         //CfnSubnetNetworkAclAssociation
     }        
 }

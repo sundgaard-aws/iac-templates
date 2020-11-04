@@ -14,6 +14,7 @@ import { DatabaseStackL2 } from './database-stack-l2';
 const app = new cdk.App();
 var props = {env: {account: process.env["CDK_DEFAULT_ACCOUNT"], region: process.env["CDK_DEFAULT_REGION"] } };
 var metaData = new MetaData();
+metaData.UseDynamicAutoScalingGroupName = false;
 metaData.AttachAutoScalingToDeploymentGroup = true;
 
 new NetworkStackL2(app, metaData.PREFIX+"network-stack", metaData, props);

@@ -20,25 +20,10 @@ export class DatabaseStackL2 extends Core.Stack {
         this.createDatabaseCluster();
     }
     
-    private buildRDSSecurityGroup(): EC2.ISecurityGroup {
-        var postFix = "rds-sg";
-        var securityGroup = new EC2.SecurityGroup(this, this.metaData.PREFIX+postFix, {
-            vpc: this.metaData.VPC,
-            securityGroupName: this.metaData.PREFIX+postFix,
-            description: this.metaData.PREFIX+postFix,
-            allowAllOutbound: true
-        });
-        
-        if(this.metaData.APISecurityGroup == null) throw new Error("api sec group is null");
-        securityGroup.connections.allowFrom(this.metaData.APISecurityGroup, EC2.Port.tcp(3306), "Lambda to RDS");
-        Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
-        return securityGroup;
-    }      
-    
     private createDatabaseCluster() {
         var defaultDBName = "tradedb";
         var dbUserName = "superman";
-        var securityGroup = this.buildRDSSecurityGroup();
+        var securityGroup = this.metaData.RDSSecurityGroup
         const rdsCluster = new RDS.DatabaseCluster(this, this.metaData.PREFIX+"rds-cluster", {
             engine: RDS.DatabaseClusterEngine.auroraMysql({ version: RDS.AuroraMysqlEngineVersion.VER_5_7_12 }),
             credentials: RDS.Credentials.fromUsername(dbUserName), // Optional - will default to admin

@@ -100,7 +100,7 @@ export class WorkflowStackL2 extends Core.Stack {
         role.addToPolicy(new IAM.PolicyStatement({
           effect: IAM.Effect.ALLOW,
           resources: ["*"],
-          actions: ["secretsmanager:GetSecretValue"]
+          actions: ["secretsmanager:GetSecretValue","dbqms:*","rds-data:*"]
         }));
 
         Core.Tags.of(role).add(this.metaData.NAME, this.metaData.PREFIX+"api-role");

@@ -14,7 +14,10 @@ export class NetworkStackL2 extends Core.Stack {
         super(scope, id, props);
         this.metaData = metaData;
         this.createVPC();
+        this.createRDSSecurityGroup();
         this.createAPISecurityGroup();
+        var lbSecurityGroup = this.createLoadBalancerSecurityGroup();
+        this.createWebSecurityGroup(lbSecurityGroup);
     }
     
     private createVPC():EC2.IVpc {
@@ -103,7 +106,61 @@ export class NetworkStackL2 extends Core.Stack {
         return privateNacl;
     }
     
-    private createAPISecurityGroup() {
+    private createRDSSecurityGroup(): EC2.ISecurityGroup {
+        var postFix = "rds-new-sg";
+        var securityGroup = new EC2.SecurityGroup(this, this.metaData.PREFIX+postFix, {
+            vpc: this.metaData.VPC,
+            securityGroupName: this.metaData.PREFIX+postFix,
+            description: this.metaData.PREFIX+postFix,
+            allowAllOutbound: true
+        });
+        
+        //if(this.metaData.APISecurityGroup == null) throw new Error("api sec group is null");
+        
+        //var conns = new EC2.Connections();
+        //conns.addSecurityGroup(this.metaData.APISecurityGroup);
+        //conns.addSecurityGroup(this.metaData.WebSecurityGroup);
+        //securityGroup.connections.allowFrom(conns, EC2.Port.tcp(3306), "Lambda and EC2 to RDS");
+        
+        //securityGroup.connections.allowFrom(this.metaData.APISecurityGroup, EC2.Port.tcp(3306), "Lambda to RDS");
+        //securityGroup.connections.allowFrom(this.metaData.WebSecurityGroup, EC2.Port.tcp(3306), "EC2 to RDS");
+        Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
+        this.metaData.RDSSecurityGroup = securityGroup;
+        return securityGroup;
+    }     
+    
+    private createLoadBalancerSecurityGroup(): EC2.ISecurityGroup {
+        var postFix = "web-lb-new-sg";
+        var securityGroup = new EC2.SecurityGroup(this,this.metaData.PREFIX+postFix, {
+            vpc: this.metaData.VPC,
+            securityGroupName: this.metaData.PREFIX+postFix,
+            description: this.metaData.PREFIX+postFix,
+            allowAllOutbound: true
+        });
+        
+        securityGroup.addIngressRule(EC2.Peer.anyIpv4(), EC2.Port.tcp(80), "HTTP from anywhere");
+        Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
+        this.metaData.LBSecurityGroup = securityGroup;
+        return securityGroup;
+    }    
+    
+    private createWebSecurityGroup(loadBalancerSecurityGroup:EC2.ISecurityGroup): EC2.ISecurityGroup {
+        var postFix = "web-new-sg";
+        var securityGroup = new EC2.SecurityGroup(this,this.metaData.PREFIX+postFix, {
+            vpc: this.metaData.VPC,
+            securityGroupName: this.metaData.PREFIX+postFix,
+            description: this.metaData.PREFIX+postFix,
+            allowAllOutbound: true
+        });
+        
+        securityGroup.connections.allowFrom(loadBalancerSecurityGroup, EC2.Port.tcp(80));
+        securityGroup.connections.allowTo(this.metaData.RDSSecurityGroup, EC2.Port.tcp(3306), "EC2 to RDS");
+        Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
+        this.metaData.WebSecurityGroup = securityGroup;
+        return securityGroup;
+    }    
+    
+    private createAPISecurityGroup(): EC2.ISecurityGroup {
         if(this.metaData.APISecurityGroup) throw new Error("API SECGROUP already exists!");
         var postFix = "lambda-api-new-sg";
         var securityGroup = new EC2.SecurityGroup(this, this.metaData.PREFIX+postFix, {
@@ -113,8 +170,10 @@ export class NetworkStackL2 extends Core.Stack {
             allowAllOutbound: true
         });
         
+        securityGroup.connections.allowTo(this.metaData.RDSSecurityGroup, EC2.Port.tcp(3306), "Lambda to RDS");
         Core.Tags.of(securityGroup).add(this.metaData.NAME, this.metaData.PREFIX+postFix);
         this.metaData.APISecurityGroup = securityGroup;
+        return securityGroup;
     } 
     
     private tagVPCResources(vpc: EC2.Vpc) {

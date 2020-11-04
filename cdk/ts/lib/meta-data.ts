@@ -15,14 +15,19 @@ export class MetaData {
     public readonly NAME = "Name";
     public VPC: EC2.IVpc;
     public VPCRef: string;
-    PublicSubnets: EC2.CfnSubnet[];
-    PrivateSubnets: EC2.CfnSubnet[];
-    LBSecurityGroup: EC2.CfnSecurityGroup;
-    WebSecurityGroup: EC2.CfnSecurityGroup;
+    
+    PublicSubnetsL1: EC2.CfnSubnet[];
+    PrivateSubnetsL1: EC2.CfnSubnet[];
+    LBSecurityGroupL1: EC2.CfnSecurityGroup;
+    WebSecurityGroupL1: EC2.CfnSecurityGroup;
+    
     AutoScalingGroup: ASC.AutoScalingGroup;
     UseDynamicAutoScalingGroupName: boolean = false;
     AttachAutoScalingToDeploymentGroup: boolean = false;
     APISecurityGroup: EC2.ISecurityGroup;
+    LBSecurityGroup: EC2.ISecurityGroup;
+    WebSecurityGroup: EC2.ISecurityGroup;
+    RDSSecurityGroup: EC2.SecurityGroup;
     constructor() {
     }
     

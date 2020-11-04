@@ -35,9 +35,9 @@ export class ClassicWebStack extends Core.Stack {
         var alb = new CfnLoadBalancer(this, PREFIX+"web-alb", {
             //name: PREFIX+"web-alb", type: "application",
             ipAddressType: "ipv4",       
-            securityGroups: [metaData.LBSecurityGroup.ref],
+            securityGroups: [metaData.LBSecurityGroupL1.ref],
             //subnets: [metaData.VPC.privateSubnets[0].subnetId, metaData.VPC.privateSubnets[1].subnetId],
-            subnets: [metaData.PublicSubnets[0].ref, metaData.PublicSubnets[1].ref],
+            subnets: [metaData.PublicSubnetsL1[0].ref, metaData.PublicSubnetsL1[1].ref],
             scheme: "internet-facing" // internal | internet-facing            
             //subnetMappings: 
         });
@@ -80,7 +80,7 @@ export class ClassicWebStack extends Core.Stack {
                 instanceType: "t3.micro",
                 imageId: ami.getImage(this).imageId, //"ami-0653812935d0743fe", // Varies per region
                 ebsOptimized: false,
-                securityGroupIds: [metaData.WebSecurityGroup.ref],
+                securityGroupIds: [metaData.WebSecurityGroupL1.ref],
                 userData: this.buildHttpServer()
             }
         });        

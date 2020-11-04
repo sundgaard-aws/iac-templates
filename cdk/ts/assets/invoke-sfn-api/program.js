@@ -112,7 +112,7 @@ function Program() {
             }
             else {
                 console.log("Creating table [trade] ...");
-                conn.query("CREATE TABLE trade (trade_id VARCHAR(255), user_id VARCHAR(255), trade_status VARCHAR(40), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date VARCHAR(40) )", function (err, result, fields) {
+                conn.query("CREATE TABLE trade (trade_id VARCHAR(255) PRIMARY KEY, user_id VARCHAR(255), trade_status VARCHAR(40), trade_isin VARCHAR(20), trade_amount VARCHAR(100), quote VARCHAR(30), trade_date TIMESTAMP(6) )", function (err, result, fields) {
                     if (err) throw err;
                     console.log(result);
                     console.log("Table [trade] created.");
@@ -130,17 +130,16 @@ function Program() {
         var trades = new Array();
         var tradeRows = new Array();
         var tradeStatus = "PENDING_VALIDATION";
-        var quote = 785.23;
         for(var i=0; i < sqsMessages.length; i++) {
             var sqsMessage = sqsMessages[i];
             var trade = JSON.parse(sqsMessage.body);
             console.log("messageId="+sqsMessage.messageId);
             console.log("tradeId="+trade.TradeId);
             trades.push(trade);
-            tradeRows.push([ trade.TradeId, trade.UserId, tradeStatus, trade.TradeISIN, trade.Amount, quote.toString(), trade.EventTime ]);
+            tradeRows.push([ trade.TradeId, trade.UserId, tradeStatus, trade.TradeISIN, trade.TradeAmount, trade.Quote, trade.TradeDate ]);
         }
         
-        conn.query("INSERT INTO trade (trade_id,user_id,trade_status,trade_isin,trade_amount,quote,trade_date) VALUES ?", [tradeRows], function (err, result, fields) {
+        conn.query("INSERT IGNORE INTO trade (trade_id,user_id,trade_status,trade_isin,trade_amount,quote,trade_date) VALUES ?", [tradeRows], function (err, result, fields) {
             if (err) throw err;
             console.log(result);
             // Start a validation workflow per trade as we may have more than one
