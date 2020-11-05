@@ -46,9 +46,7 @@ export class DatabaseStackL2 extends Core.Stack {
         ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"rds-default-db", defaultDBName, SSM.ParameterType.STRING);
         if(rdsCluster && rdsCluster.secret && rdsCluster.secret.secretArn && rdsCluster.secret.secretName) {
             new CfnOutput(this, "SecretArnOutput", {description: "SecretArn", value: rdsCluster.secret.secretArn});
-            //new CfnOutput(this, "SecretNameOutput", {description: "SecretName", value: rdsCluster.secret.secretName});
             ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"rds-secret-arn", rdsCluster.secret.secretArn, SSM.ParameterType.STRING);
-            //ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"rds-secret-name", rdsCluster.secret.secretName, SSM.ParameterType.STRING);
         }
         Core.Tags.of(rdsCluster).add(this.metaData.NAME, this.metaData.PREFIX+"rds-cluster");
         Core.Tags.of(rdsCluster).add(this.metaData.NAME, this.metaData.PREFIX+"rds-cluster-sg", { includeResourceTypes: [EC2.CfnSecurityGroup.CFN_RESOURCE_TYPE_NAME]});

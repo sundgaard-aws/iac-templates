@@ -17,7 +17,6 @@ export class CodeStarStackL2 extends Core.Stack {
 
         this.metaData = metaData;
         this.modifyPipeline();
-        //this.createPipeline();
     }
     
     private modifyPipeline() {
@@ -33,6 +32,7 @@ export class CodeStarStackL2 extends Core.Stack {
     }
 
     // https://docs.aws.amazon.com/cdk/api/latest/docs/aws-codepipeline-actions-readme.html
+    // @Deprecated
     private createPipeline()
     {
         /*var codeBucket = new S3.Bucket(this, this.metaData.PREFIX+"lambda-code-bucket", {
@@ -126,24 +126,11 @@ export class CodeStarStackL2 extends Core.Stack {
         });*/
     }
     
+    // @Deprecated
     private createBuildProject() {
        var buildProject = new CB.Project(this, this.metaData.PREFIX+"build-project-2", {
         projectName: this.metaData.PREFIX+"build-project-2",
             //source: {type: "GitHub", badgeSupported: false, }
         });
-    
-        //BuildSpec.
-    
-        /*const pipelineProject = new PipelineProject(this, PREFIX+"pipeline-project", {
-          //buildSpec: BuildSpec.fromSourceFilename('buildspec.yml'),
-          description: PREFIX+"pipeline-project",
-          environment: {
-            buildImage:  LinuxBuildImage.STANDARD_2_0,
-            computeType: ComputeType.SMALL,
-            privileged: true,
-          },
-          environmentVariables: {
-          },
-    }*/
     }
 }

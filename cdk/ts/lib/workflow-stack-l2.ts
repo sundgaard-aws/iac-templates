@@ -36,24 +36,26 @@ export class WorkflowStackL2 extends Core.Stack {
         });
         Core.Tags.of(codeBucket).add(this.metaData.NAME, this.metaData.PREFIX+"lambda-code-bucket");
 
-        var submitLambda = this.createSubmitFunction();
+        var submitValidationJobLambda = this.createSubmitFunction();
         var getValidationStatusLambda = this.createStatusFunction();
-        var updateStatusLambda = this.createUpdateStatusFunction();
+        var updateValidationStatusLambda = this.createUpdateStatusFunction();
 
         var submitValidationJob = new StepFunctionsTasks.LambdaInvoke(this, "Submit Validation Job", {
-            lambdaFunction: submitLambda,
+            lambdaFunction: submitValidationJobLambda,
             // Lambda's result is in the attribute `Payload`
-            outputPath: "$.Payload.refinedInput"
+            outputPath: "$.Payload.refinedInput",
+            timeout: Core.Duration.seconds(30)
         });
 
-        var simulatedValidation = new StepFunctions.Wait(this, "Validate Trade", {
+        var validateTrade = new StepFunctions.Wait(this, "Validate Trade", {
             time: StepFunctions.WaitTime.secondsPath("$.waitSeconds")
         });
 
         var getValidationStatus = new StepFunctionsTasks.LambdaInvoke(this, "Get Validation Status", {
             lambdaFunction: getValidationStatusLambda,
             inputPath: "$",
-            outputPath: "$.Payload.refinedInput"
+            outputPath: "$.Payload.refinedInput",
+            timeout: Core.Duration.seconds(30)
         });
 
         var jobFailed = new StepFunctions.Fail(this, "Job Failed", {
@@ -61,24 +63,33 @@ export class WorkflowStackL2 extends Core.Stack {
             error: "DescribeJob returned FAILED"
         });
 
-        var finalStatus = new StepFunctionsTasks.LambdaInvoke(this, "Update Validation Status", {                
-            lambdaFunction: updateStatusLambda,
+        var updateValidationStatus = new StepFunctionsTasks.LambdaInvoke(this, "Update Validation Status", {                
+            lambdaFunction: updateValidationStatusLambda,
             // Use "guid" field as input
             inputPath: "$",
-            outputPath: "$.Payload.refinedInput"
+            outputPath: "$.Payload.refinedInput", 
+            timeout: Core.Duration.seconds(30)
         });
 
-        var definition = submitValidationJob
-        .next(simulatedValidation)
+        var workflowDefinition = submitValidationJob
+        .next(validateTrade)
         .next(getValidationStatus)
-        .next(new StepFunctions.Choice(this, "Validation Complete?").when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "INVALID"), jobFailed)
-        .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "VALID"), finalStatus).otherwise(simulatedValidation));
+        .next(new StepFunctions.Choice(this, "Validation Complete?")
+            .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "INVALID"), jobFailed)
+            .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "VALID"), updateValidationStatus)
+            .otherwise(validateTrade));
 
         var stateMachine = new StepFunctions.StateMachine(this, "StateMachine", {
-            definition: definition,
+            definition: workflowDefinition,
             timeout: Core.Duration.minutes(5),
-            stateMachineName: this.metaData.PREFIX+"trade-stm"
+            stateMachineName: this.metaData.PREFIX+"trade-stm",
+            tracingEnabled: true
         });
+        stateMachine.role.addToPolicy(new IAM.PolicyStatement({
+          effect: IAM.Effect.ALLOW,
+          resources: ["*"],
+          actions: ["xray:*"]
+        }));
         Core.Tags.of(stateMachine).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm");
         Core.Tags.of(stateMachine.role).add(this.metaData.NAME, this.metaData.PREFIX+"trade-stm-role");
         this.ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"state-machine-arn", stateMachine.stateMachineArn, SSM.ParameterType.STRING);
@@ -100,7 +111,7 @@ export class WorkflowStackL2 extends Core.Stack {
         role.addToPolicy(new IAM.PolicyStatement({
           effect: IAM.Effect.ALLOW,
           resources: ["*"],
-          actions: ["secretsmanager:GetSecretValue","dbqms:*","rds-data:*"]
+          actions: ["secretsmanager:GetSecretValue","dbqms:*","rds-data:*","xray:*"]
         }));
 
         Core.Tags.of(role).add(this.metaData.NAME, this.metaData.PREFIX+"api-role");
@@ -110,7 +121,9 @@ export class WorkflowStackL2 extends Core.Stack {
     private createLambdaFunction(name:string, handlerMethod:string, assetPath:string, vpc:EC2.IVpc):Lambda.Function {
         var codeFromLocalZip = Lambda.Code.fromAsset(assetPath);
         var lambdaFunction = new Lambda.Function(this, this.metaData.PREFIX+name, { 
-            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime, memorySize: 256, timeout: Core.Duration.seconds(20), role: this.apiRole, securityGroups: [this.metaData.APISecurityGroup]
+            functionName: this.metaData.PREFIX+name, vpc: vpc, code: codeFromLocalZip, handler: handlerMethod, runtime: this.runtime, memorySize: 256, 
+            timeout: Core.Duration.seconds(20), role: this.apiRole, securityGroups: [this.metaData.APISecurityGroup],
+            tracing: Lambda.Tracing.ACTIVE
         });
         Core.Tags.of(lambdaFunction).add(this.metaData.NAME, this.metaData.PREFIX+name);
         return lambdaFunction;
@@ -141,7 +154,8 @@ export class WorkflowStackL2 extends Core.Stack {
         Core.Tags.of(deadLetterqueue).add(this.metaData.NAME, this.metaData.PREFIX+"dlq-sqs");
         
         var queue = new SQS.Queue(this, this.metaData.PREFIX+"sqs", {
-            queueName: this.metaData.PREFIX+"sqs", visibilityTimeout: Core.Duration.seconds(4), retentionPeriod: Core.Duration.days(14), deadLetterQueue: {queue: deadLetterqueue, maxReceiveCount: 5}
+            queueName: this.metaData.PREFIX+"sqs", visibilityTimeout: Core.Duration.seconds(4), retentionPeriod: Core.Duration.days(14), 
+            deadLetterQueue: {queue: deadLetterqueue, maxReceiveCount: 5}
         });
         Core.Tags.of(queue).add(this.metaData.NAME, this.metaData.PREFIX+"sqs");
         this.ssmHelper.createSSMParameter(this, this.metaData.PREFIX+"sqs-queue-url", queue.queueUrl, SSM.ParameterType.STRING);
