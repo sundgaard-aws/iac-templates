@@ -15,7 +15,6 @@ import { MetaData } from './meta-data';
 import { CfnListener, CfnLoadBalancer, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export class ClassicWebStackL2 extends Core.Stack {
-    //private targetGroup: ELBv2.CfnTargetGroup;
     private metaData: MetaData;
     
     constructor(scope: Core.Construct, id: string, metaData: MetaData, props?: Core.StackProps) {
@@ -27,7 +26,6 @@ export class ClassicWebStackL2 extends Core.Stack {
         var autoScalingGroup = this.createAutoScalingGroup(metaData);
         metaData.AutoScalingGroup = autoScalingGroup;
         this.createLoadBalancer(metaData, autoScalingGroup);
-        //this.createAutoScalingGroupL2(vpcRef, vpc);
     }
     
     private createLogStream() {
