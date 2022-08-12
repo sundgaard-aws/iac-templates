@@ -1,8 +1,8 @@
 {
-  "app": "dotnet run -p src/Dotnet/Dotnet.csproj",
-  "context": {
-    "@aws-cdk/core:enableStackNameDuplicates": "true",
-    "aws-cdk:enableDiffNoFail": "true",
-    "@aws-cdk/core:stackRelativeExports": "true"
-  }
+    "app": "dotnet run --project src/CDKApp/CDKApp.csproj",
+    "context": {
+      "@aws-cdk/core:enableStackNameDuplicates": "true",
+      "aws-cdk:enableDiffNoFail": "true",
+      "@aws-cdk/core:stackRelativeExports": "true"
+    }
 }

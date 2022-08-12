@@ -1,5 +1,0 @@
-[33mThe stack iac-demo-network-stack already includes a CDKMetadata resource[39m
-[33mThe stack iac-demo-workflow-stack already includes a CDKMetadata resource[39m
-[33mThe stack iac-demo-web-app-stack already includes a CDKMetadata resource[39m
-[31m[Error at /iac-demo-network-stack] The filter 'null' is invalid[39m
-[31mFound errors[39m

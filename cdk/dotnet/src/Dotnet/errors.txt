@@ -1,6 +1,0 @@
-10:54:02 AM | CREATE_FAILED        | AWS::ElasticLoadBalancingV2::LoadBalancer | iac-demo-web-alb
-At least two subnets in two different Availability Zones must be specified (Service: AmazonElasticLoadBalancing; Status Code: 400; Error Code: ValidationError; Request ID: 0c3745d2-4603-4e35-8009-22d28b215515; Proxy: null)
-10:54:02 AM | CREATE_FAILED        | AWS::ElasticLoadBalancingV2::TargetGroup  | iac-demo-web-tg
-A port must be specified (Service: AmazonElasticLoadBalancing; Status Code: 400; Error Code: ValidationError; Request ID: a21121bf-fac5-411a-970f-6e15bb433da5; Proxy: null)
-10:54:03 AM | ROLLBACK_IN_PROGRESS | AWS::CloudFormation::Stack                | iac-demo-web-app-stack
-The following resource(s) failed to create: [iacdemowebtg, iacdemowebalb, CDKMetadata]. . Rollback requested by user.
