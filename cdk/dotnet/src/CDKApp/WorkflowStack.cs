@@ -38,7 +38,7 @@ namespace Dotnet
             //var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
             var statusFunctionCodeFromLocalZip = Code.FromAsset("assets/SimpleFunctionHandler/bin/drop.zip");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invokes", Runtime = runtime
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invoke", Runtime = runtime
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
