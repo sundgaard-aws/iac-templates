@@ -5,6 +5,7 @@ using Amazon.CDK.AWS.AutoScaling;
 using Amazon.CDK.AWS.ElasticLoadBalancingV2;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.S3;
+using Constructs;
 
 namespace Dotnet
 {

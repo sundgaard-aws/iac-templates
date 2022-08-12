@@ -6,6 +6,7 @@ using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.StepFunctions.Tasks;
 using Amazon.CDK.AWS.EC2;
 using Amazon.CDK.AWS.S3;
+using Constructs;
 
 namespace Dotnet
 {
@@ -27,11 +28,11 @@ namespace Dotnet
                 BucketName = Program.PREFIX+"lambda-code-bucket"
             });*/
             
-            var runtime = Runtime.DOTNET_CORE_3_1;
+            var runtime = Runtime.DOTNET_6;
             //var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
             var submitFunctionCodeFromLocalZip = Code.FromAsset("assets/SimpleFunctionHandler/bin/drop.zip");
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invoke", Runtime = runtime
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invoke", Runtime = runtime, 
             });
 
             //var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");

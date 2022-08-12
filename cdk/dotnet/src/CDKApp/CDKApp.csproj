@@ -4,16 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RollForward>Major</RollForward>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Amazon.CDK" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.S3" Version="1.168.0"/>
+  <ItemGroup>    
+    <PackageReference Include="Amazon.CDK.Lib" Version="2.37.1"/>
     <PackageReference Include="Amazon.JSII.Analyzers" Version="1.13.0"/>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.EC2" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.Lambda" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.ElasticLoadBalancingV2" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.StepFunctions" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.StepFunctions.Tasks" Version="1.168.0"/>
-    <PackageReference Include="Amazon.CDK.AWS.SQS" Version="1.168.0"/>
   </ItemGroup>
 </Project>

@@ -75,9 +75,9 @@ export class WorkflowStackL2 extends Core.Stack {
         .next(validateTrade)
         .next(getValidationStatus)
         .next(new StepFunctions.Choice(this, "Validation Complete?")
-            .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "INVALID"), jobFailed)
-            .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "VALID"), updateValidationStatus)
-            .otherwise(validateTrade));
+        .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "INVALID"), jobFailed)
+        .when(StepFunctions.Condition.stringEquals("$.trade.TradeStatus", "VALID"), updateValidationStatus)
+        .otherwise(validateTrade));
 
         var stateMachine = new StepFunctions.StateMachine(this, "StateMachine", {
             definition: workflowDefinition,
