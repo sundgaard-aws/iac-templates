@@ -18,8 +18,8 @@ namespace Dotnet
                 Env = new Amazon.CDK.Environment { Region = "eu-central-1", Account = defaultAccount }
             };
             var networkStack = new NetworkStack(app, "iac-demo-network-stack", stackProps);
-            var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef, stackProps);
-            var workflowStack = new WorkflowStack(app, "iac-demo-workflow-stack", networkStack.VpcRef, networkStack.L1Vpc, stackProps);
+            //var webAppStack = new WebAppStack(app, "iac-demo-web-app-stack", networkStack.VpcRef, stackProps);
+            var workflowStack = new WorkflowStack(app, "iac-demo-workflow-stack", networkStack.VPC, stackProps);
             app.Synth();
         }
     }

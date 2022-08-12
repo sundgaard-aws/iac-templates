@@ -6,75 +6,38 @@ namespace Dotnet
 {
     public class NetworkStack : Stack
     {
-        public string VpcRef { get; set; }
-        public Vpc L1Vpc { get; set; }
+        public Vpc VPC { get; set; }
 
         internal NetworkStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            //UsingLevel2Constructs();            
-            var vpc = new CfnVPC(this, Program.PREFIX + "primary-vpc", new CfnVPCProps {
-                CidrBlock = "10.20.0.0/16"
-            });
-            vpc.Tags.SetTag(Program.NAME, Program.PREFIX + "primary-vpc");
-            VpcRef = vpc.Ref;
-            
-            //var vpcId = (string)this.Node.TryGetContext(Program.PREFIX + "primary-vpc");
-            var L1Vpc = Vpc.FromLookup(this, "VPC", new VpcLookupOptions
-            {
-                VpcName = Program.PREFIX + "primary-vpc"
-            });
-
-            /*var L1VPC = Vpc.FromLookup(this, VpcRef, new VpcLookupOptions{
-                VpcId = VpcRef
-            });*/
-
-            var privateSubnetA = new CfnSubnet(this, Program.PREFIX + "private-subnet-a", new CfnSubnetProps {
-                CidrBlock = "10.20.0.0/24", AvailabilityZone = this.AvailabilityZones[0], VpcId = vpc.Ref
-            });
-            privateSubnetA.Tags.SetTag(Program.NAME, Program.PREFIX + "private-subnet-a");
-
-            var privateSubnetB = new CfnSubnet(this, Program.PREFIX + "private-subnet-b", new CfnSubnetProps {
-                CidrBlock = "10.20.1.0/24", AvailabilityZone = this.AvailabilityZones[1], VpcId = vpc.Ref
-            });
-            privateSubnetB.Tags.SetTag(Program.NAME, Program.PREFIX + "private-subnet-b");
+            createVPC();
         }
 
-        private void UsingLevel2Constructs()
-        {
-            // Level 2 constructs
-            /*SubnetConfiguration[] conf = new SubnetConfiguration[2];
-            conf[0] = new SubnetConfiguration{
-                CidrMask = 24, Name = "private-subnet-a", SubnetType = SubnetType.PRIVATE
-            };
-            conf[1] = new SubnetConfiguration{
-                CidrMask = 25, Name = "public-subnet-a", SubnetType = SubnetType.PUBLIC
-            };*/
-
-            var vpc = new Vpc(this, "primary-vpc", new VpcProps {
-                Cidr = "10.20.0.0/16"
+        private IVpc createVPC() {
+        // Link: https://blog.codecentric.de/en/2019/09/aws-cdk-create-custom-vpc/
+        /*var vpc = new Vpc(this, MetaData.PREFIX+"vpc", {
+            cidr: "10.90.0.0/16", subnetConfiguration: [
+                { cidrMask: 24, name: MetaData.PREFIX+"private-sne", subnetType: SubnetType.PRIVATE_WITH_NAT },
+                { cidrMask: 25, name: MetaData.PREFIX+"public-sne", subnetType: SubnetType.PUBLIC }
+            ],
+            natGateways: 1,
+            maxAzs: 2
+        });
+        
+        var publicNacl = this.createPublicNacl(vpc);
+        vpc.publicSubnets.forEach( subnet => { subnet.associateNetworkAcl(MetaData.PREFIX+"public-nacl-assoc", publicNacl) } );
+        var privateNacl = this.createPrivateNacl(vpc);
+        vpc.privateSubnets.forEach( subnet => { subnet.associateNetworkAcl(MetaData.PREFIX+"private-nacl-assoc", privateNacl) } );        
+        this.tagVPCResources(vpc);
+        new CfnOutput(this, 'Private Subnet ID', { value: vpc.privateSubnets[0].subnetId });*/
+        var vpc = new Vpc(this, Program.PREFIX+"primary-vpc", new VpcProps {
+                Cidr = "10.80.0.0/16",
+                
                 //, SubnetConfiguration = conf
-            });
+        });
+        
+        return vpc;
+    }
 
-            /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
-                VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
-                AvailabilityZone = this.AvailabilityZones[0]
-            });   
-            
-            /*var privateSubnetA = new PrivateSubnet(this, "iac-demo-private-subnet-a", new PrivateSubnetProps {
-                VpcId = vpc.VpcId, CidrBlock = "10.20.1.0/24",
-                AvailabilityZone = this.AvailabilityZones[0]
-            });            
-
-            var privateSubnetB = new PrivateSubnet(this, "iac-demo-private-subnet-b", new PrivateSubnetProps {
-                VpcId = vpc.VpcId, CidrBlock = "10.20.2.0/24",
-                AvailabilityZone = this.AvailabilityZones[1]
-            });
-            
-            Tag.Add(vpc, Name, Prefix+"primary-vpc");*/
-
-            //var tags = new Tags();
-            //new Tags().Add()
-            // "iac-demo-primary-vpc"            
-        }
     }
 }

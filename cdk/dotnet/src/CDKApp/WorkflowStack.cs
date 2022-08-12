@@ -11,41 +11,33 @@ namespace Dotnet
 {
     public class WorkflowStack : Stack
     {
-        internal WorkflowStack(Construct scope, string id, string vpcRef, Vpc vpc, IStackProps props = null) : base(scope, id, props)
+        internal WorkflowStack(Construct scope, string id, Vpc vpc, IStackProps props = null) : base(scope, id, props)
         {
-            createSQSQueue(vpcRef);
-            createStepFunctionStates(vpcRef, vpc);
+            //createSQSQueue(vpcRef);
+            createStepFunctionStates(vpc);
         }
 
-        private void createStepFunctionStates(string vpcRef, Vpc vpc)
+        private void createStepFunctionStates(Vpc vpc)
         {
             /*var stepFunctions = new Amazon.CDK.AWS.StepFunctions.CfnStateMachine(this, Program.PREFIX+"stf", new CfnStateMachineProps {
                 StateMachineType = StateMachineType.STANDARD.ToString(), StateMachineName = Program.PREFIX+"stf"
             });*/
-            /*var vpc = Vpc.FromLookup(this, vpcRef, new VpcLookupOptions{
-                VpcId = vpcRef
-            });*/
 
-            var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
+            /*var codeBucket = new Bucket(this, Program.PREFIX+"lambda-code-bucket", new BucketProps {
                 BucketName = Program.PREFIX+"lambda-code-bucket"
-            });            
-
-            var runtime = Runtime.DOTNET_CORE_3_1;
-            var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
-            var submitFunctionCodeFromLocalZip = Code.FromAsset("submit-api.zip");
-            var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
-            });
-
-            /*var test = new CfnFunction(this, "id", new CfnFunctionProps {
-                FunctionName = Program.PREFIX + "submit-api-lfn", Code = submitFunctionCode, Runtime = runtime.ToString(), Handler = "IAC.Demo.FunctionHandler"
             });*/
             
+            var runtime = Runtime.DOTNET_CORE_3_1;
+            //var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
+            var submitFunctionCodeFromLocalZip = Code.FromAsset("assets/SimpleFunctionHandler/bin/drop.zip");
+            var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invoke", Runtime = runtime
+            });
 
-            var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
-            var statusFunctionCodeFromLocalZip = Code.FromAsset("submit-api.zip");
+            //var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
+            var statusFunctionCodeFromLocalZip = Code.FromAsset("assets/SimpleFunctionHandler/bin/drop.zip");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "IAC.Demo.FunctionHandler", Runtime = runtime
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "SimpleFunctionHandler::IACDemo.FunctionHandler::Invokes", Runtime = runtime
             });
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
