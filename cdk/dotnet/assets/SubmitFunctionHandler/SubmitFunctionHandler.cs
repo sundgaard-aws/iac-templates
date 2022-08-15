@@ -8,7 +8,7 @@ namespace IACDemo.StepFunctions.Submit {
             return new { 
                 waitSeconds= "5", // Actual input to state machine
                 tradeId=100,
-                guid="12317446761" //Guid.NewGuid().ToString()
+                guid=Guid.NewGuid().ToString()
             };
         }
     }   
