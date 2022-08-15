@@ -30,13 +30,13 @@ namespace Dotnet
             
             var runtime = Runtime.DOTNET_6;
             //var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
-            var submitFunctionCodeFromLocalZip = Code.FromAsset("assets/yySimpleFunctionHandler/bin/drop.zip");
+            var submitFunctionCodeFromLocalZip = Code.FromAsset("assets/SubmitFunctionHandler/bin/drop.zip");
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
                 FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "SubmitFunctionHandler::IACDemo.StepFunctions.Submit.FunctionHandler::Invoke", Runtime = runtime, 
             });
 
             //var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
-            var statusFunctionCodeFromLocalZip = Code.FromAsset("assets/SimpleFunctionHandler/bin/drop.zip");
+            var statusFunctionCodeFromLocalZip = Code.FromAsset("assets/JobStatusFunctionHandler/bin/drop.zip");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
                 FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "JobStatusFunctionHandler::IACDemo.StepFunctions.JobStatus.FunctionHandler::Invoke", Runtime = runtime
             });
