@@ -30,16 +30,21 @@ namespace Dotnet
             
             var runtime = Runtime.DOTNET_6;
             //var submitFunctionCodeFromS3 = new S3Code(codeBucket, "submit-api-code.zip");
-            var submitFunctionCodeFromLocalZip = Code.FromAsset("assets/SubmitFunctionHandler/bin/drop.zip");
+            var functionCodeFromLocalZip = Code.FromAsset("assets/SubmitFunctionHandler/bin/drop.zip");
             var submitLambda = new Function(this, "SubmitLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = submitFunctionCodeFromLocalZip, Handler = "SubmitFunctionHandler::IACDemo.StepFunctions.Submit.FunctionHandler::Invoke", Runtime = runtime, 
+                FunctionName = Program.PREFIX + "submit-api-lfn", Vpc = vpc, Code = functionCodeFromLocalZip, Handler = "SubmitFunctionHandler::IACDemo.StepFunctions.Submit.FunctionHandler::Invoke", Runtime = runtime, 
             });
 
             //var statusFunctionCodeFromS3 = new S3Code(codeBucket, "status-api-code.zip");
-            var statusFunctionCodeFromLocalZip = Code.FromAsset("assets/JobStatusFunctionHandler/bin/drop.zip");
+            functionCodeFromLocalZip = Code.FromAsset("assets/JobStatusFunctionHandler/bin/drop.zip");
             var getStatusLambda = new Function(this, "CheckLambda", new FunctionProps { 
-                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = statusFunctionCodeFromLocalZip, Handler = "JobStatusFunctionHandler::IACDemo.StepFunctions.JobStatus.FunctionHandler::Invoke", Runtime = runtime
+                FunctionName = Program.PREFIX + "check-api-lfn", Vpc = vpc, Code = functionCodeFromLocalZip, Handler = "JobStatusFunctionHandler::IACDemo.StepFunctions.JobStatus.FunctionHandler::Invoke", Runtime = runtime
             });
+
+            functionCodeFromLocalZip = Code.FromAsset("assets/FinalizeJobFunctionHandler/bin/drop.zip");
+            var finalizeJobLambda = new Function(this, "FinalizeJobLambda", new FunctionProps { 
+                FunctionName = Program.PREFIX + "finalize-job-api-lfn", Vpc = vpc, Code = functionCodeFromLocalZip, Handler = "FinalizeJobFunctionHandler::IACDemo.StepFunctions.FinalizeJob.FunctionHandler::Invoke", Runtime = runtime
+            });            
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
                 LambdaFunction = submitLambda,
@@ -55,7 +60,8 @@ namespace Dotnet
                 LambdaFunction = getStatusLambda,
                 // Pass just the field named "guid" into the Lambda, put the
                 // Lambda's result in a field called "status" in the response
-                InputPath = "$.guid",
+                //InputPath = "$.guid",
+                InputPath = "$",
                 OutputPath = "$.Payload"
             });
 
@@ -65,9 +71,9 @@ namespace Dotnet
             });
 
             var finalStatus = new LambdaInvoke(this, "Get Final Job Status", new LambdaInvokeProps {
-                LambdaFunction = getStatusLambda,
+                LambdaFunction = finalizeJobLambda,
                 // Use "guid" field as input
-                InputPath = "$.guid",
+                InputPath = "$",
                 OutputPath = "$.Payload"
             });
 

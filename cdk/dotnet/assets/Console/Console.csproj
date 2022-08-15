@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SubmitFunctionHandler\SubmitFunctionHandler.csproj" />
     <ProjectReference Include="..\JobStatusFunctionHandler\JobStatusFunctionHandler.csproj" />
+    <ProjectReference Include="..\FinalizeJobFunctionHandler\FinalizeJobFunctionHandler.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

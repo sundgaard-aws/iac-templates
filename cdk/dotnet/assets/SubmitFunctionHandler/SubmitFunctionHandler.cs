@@ -7,8 +7,8 @@ namespace IACDemo.StepFunctions.Submit {
         public Object Invoke() {
             return new { 
                 waitSeconds= "5", // Actual input to state machine
-                trade=new { tradeId=100 },
-                guid=Guid.NewGuid().ToString()
+                tradeId=100,
+                guid="12317446761" //Guid.NewGuid().ToString()
             };
         }
     }   

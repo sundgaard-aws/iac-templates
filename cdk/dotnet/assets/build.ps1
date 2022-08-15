@@ -12,3 +12,13 @@ cd JobStatusFunctionHandler
 dotnet publish -o publish
 cd publish
 7z a ../bin/drop.zip *
+
+cd ../..
+
+Write-Output "Building FinalizeJob Function"
+cd FinalizeJobFunctionHandler
+dotnet publish -o publish
+cd publish
+7z a ../bin/drop.zip *
+
+cd ../..
