@@ -11,8 +11,10 @@ import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
 
 
 export class MetaData {
-    public readonly PREFIX = "iac-demo-";
-    public readonly NAME = "Name";
+    public static readonly PREFIX:string = "iac-demo-";
+    public static readonly NAME:string = "Name";
+    public static readonly APP_CODE: string = "AppCode";
+    public static readonly COST_CENTER: string = "CostCenter";
     public VPC: EC2.IVpc;
     public VPCRef: string;
     
@@ -27,7 +29,7 @@ export class MetaData {
     APISecurityGroup: EC2.ISecurityGroup;
     LBSecurityGroup: EC2.ISecurityGroup;
     WebSecurityGroup: EC2.ISecurityGroup;
-    RDSSecurityGroup: EC2.SecurityGroup;
+    RDSSecurityGroup: EC2.SecurityGroup;    
     constructor() {
     }
     

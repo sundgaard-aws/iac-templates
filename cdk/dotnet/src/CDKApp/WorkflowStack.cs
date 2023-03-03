@@ -48,7 +48,7 @@ namespace Dotnet
 
             var submitJob = new LambdaInvoke(this, "Submit Job", new LambdaInvokeProps {
                 LambdaFunction = submitLambda,
-                // Lambda's result is in the attribute `Payload`
+                // Lambda's result is in the attribute `Payload
                 OutputPath = "$.Payload"
             });
 
