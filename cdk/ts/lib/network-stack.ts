@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import EC2 = require('@aws-cdk/aws-ec2');
 import { CfnEIP, CfnEIPAssociation, CfnInternetGateway, CfnNatGateway, CfnNetworkInterface, CfnRoute, CfnRouteTable, CfnSubnetNetworkAclAssociation, CfnSubnetRouteTableAssociation, CfnVPCGatewayAttachment } from '@aws-cdk/aws-ec2';
 import { MetaData } from './meta-data';
+import { Aspects } from '@aws-cdk/core';
 
 const PREFIX = "iac-demo-";
 const NAME = "Name";

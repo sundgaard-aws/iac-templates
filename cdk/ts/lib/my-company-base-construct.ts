@@ -1,5 +1,6 @@
 import { Construct, Tags } from "@aws-cdk/core";
 import { MetaData } from "./meta-data";
+import { Capture, Match, Template } from "aws-cdk-lib/assertions";
 
 export class MyCompanyMandatoryProps {
     public appCode:string;    

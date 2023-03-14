@@ -3,9 +3,7 @@ import * as SSM from '@aws-cdk/aws-ssm';
 import * as SM from '@aws-cdk/aws-secretsmanager';
 
 export class SSMHelper {
-
-    constructor() {
-    }
+    constructor() {}
 
     public createSSMParameter(stack: Core.Construct, parameterName: string, parameterValue: string, parameterType: SSM.ParameterType) {
         new SSM.StringParameter(stack, parameterName, {
@@ -13,7 +11,6 @@ export class SSMHelper {
             parameterName: parameterName,
             stringValue: parameterValue,
             type: parameterType
-            // allowedPattern: '.*',
         });
     }
     
@@ -22,7 +19,6 @@ export class SSMHelper {
             description: parameterName,
             secretName: parameterName,
             generateSecretString: {}
-            // allowedPattern: '.*',
         });
     }    
 }

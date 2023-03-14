@@ -1,13 +1,5 @@
-import * as Core from '@aws-cdk/core';
 import EC2 = require('@aws-cdk/aws-ec2');
-import S3 = require('@aws-cdk/aws-s3');
-import SQS = require('@aws-cdk/aws-sqs');
-import Lambda = require('@aws-cdk/aws-lambda');
-import StepFunctions = require('@aws-cdk/aws-stepfunctions');
-import StepFunctionsTasks = require('@aws-cdk/aws-stepfunctions-tasks');
 import * as ASC from '@aws-cdk/aws-autoscaling';
-import * as ELB from '@aws-cdk/aws-elasticloadbalancingv2';
-import { InstanceType, IVpc } from '@aws-cdk/aws-ec2';
 
 
 export class MetaData {
@@ -15,6 +7,7 @@ export class MetaData {
     public static readonly NAME:string = "Name";
     public static readonly APP_CODE: string = "AppCode";
     public static readonly COST_CENTER: string = "CostCenter";
+    public static readonly REQUIRED_TAGS: string[] = [this.APP_CODE, this.COST_CENTER];
     public VPC: EC2.IVpc;
     public VPCRef: string;
     
